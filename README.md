@@ -1,6 +1,8 @@
 # raboms
 raboms - radio buttons made simple / radio botonero muy simple
 
+![](releases/0.4/screenshot.png)
+
 raboms es un botonero para radios, creado para la comunidad de radio-y-software-libre, hecho simple con html5 y javascript.
 
 El gól de ese programa es facilitar a radios comunitarias que quieren hacer programa en vivo con un botonero, tener una opción facil y liviano. 
