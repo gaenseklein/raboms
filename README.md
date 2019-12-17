@@ -12,7 +12,7 @@ Primero intentamos hasta donde podemos llegar asi no más con puro html y javasc
 
 En la carpeta "releases" estan las ultimas versiones. Guarda la version ultima en tu compu, ábrelo y ya. 
 la version más actual: [actual.tar.gz](releases/actual.tar.gz)
-último release: [actual.tar.gz](releases/0.4.1.zip)
+último release: [rabom version 0.4.1](releases/0.4.1.zip)
 
 # idioma/language
 
