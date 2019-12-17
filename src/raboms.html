@@ -340,7 +340,7 @@ devices;
         document.getElementById("configFaderSteps").value = this.fader.steps;
         if(typeof saveAs === "function"){
             var savetoDiskButton = document.createElement("Button");
-            savetoDiskButton.innerHTML = "<span class='langen'>Save Project</span><span class='langes'>Guarda projecto</span>";
+            savetoDiskButton.innerHTML = "<span class='langen'>Save<br>Project</span><span class='langes'>Guarda<br>projecto</span>";
             savetoDiskButton.onclick = function(){
                 var saveObject = {};
                 saveObject.basepath = document.getElementById("basepath").value;
@@ -357,7 +357,7 @@ devices;
             var buttonarea = document.getElementById("buttonarea");
             buttonarea.appendChild(savetoDiskButton);
             var loadFromDiscButton = document.createElement("button");
-            loadFromDiscButton.innerHTML = "<span class='langen'>Load Project </span><span class='langes'> Abre projecto</span>";
+            loadFromDiscButton.innerHTML = "<span class='langen'>Load<br>Project</span><span class='langes'>Abre<br>projecto</span>";
             loadFromDiscButton.onclick = function(){
                 var lfd = document.getElementById("lfdInput");
                 if(lfd){
@@ -597,7 +597,7 @@ window.addEventListener("keyup", function(e){
     <div id="advancedButtonDialogDeleteButton"><button id="advancedButtonDialogDeleteButtonButton">delete<br>borrar</button></div>
 </div>
 <div id="config">
-    <h1><span class="langen">Configuration</span><span class="langes">Configuración</span></h1>
+    <h2><span class="langen">Configuration</span><span class="langes">Configuración</span></h2>
     <div>
       <select id="languageSelector" onchange='document.body.classList.remove("langes");document.body.classList.remove("langen");document.body.classList.add(this.value);'>
         <option value="langes">es</option>
@@ -665,7 +665,7 @@ window.addEventListener("keyup", function(e){
     <div>
       <h3>
         <span class="langen">Mute-To-Speak</span>
-        <span class="langes">Volume bajo x hablar</span>
+        <span class="langes">Volumen x hablar</span>
       </h3>
       <input id="configMuteToSpeakRange" type="range" oninput="raBoms.muteToSpeakVolume=this.value/100" min="1" max="100" value="30">
     </div>

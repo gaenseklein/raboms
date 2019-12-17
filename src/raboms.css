@@ -27,7 +27,7 @@ body.langen .langen{
   ". buttonarea"
   "config list";
   grid-template-rows:5em 1fr;
-  grid-template-columns:30ch 1fr;
+  grid-template-columns:auto 1fr;
 }
 
 #rabomstitle{grid-area:title;}
@@ -123,7 +123,7 @@ div#archiveSelection {
 #basepath{
   width:60ch;
 }
-/*list-view of raboms-buttons*/
+/*list-view and raboms-buttons*/
 .buttonKey {
     font-size: xx-large;
     background: rgba(0,140,0,0.8);
@@ -182,7 +182,7 @@ div#archiveSelection {
 }
 
 .buttonKey {
-    border-radius: 10px;
+    border-radius: 0.5ch;
     overflow:hidden;
 }
 
@@ -195,26 +195,7 @@ button {
     margin-right: 2ch;
     min-width: 14ch;
 }
-/*
-@media only screen and (min-width: 750px){
-  div#fileIndex {
-      display: grid;
-      grid-template-columns: auto auto;
-  }
-}
-@media only screen and (min-width: 1100px){
-  div#fileIndex {
-      display: grid;
-      grid-template-columns: auto auto auto;
-  }
-}
-@media only screen and (min-width: 1500px){
-  div#fileIndex {
-      display: grid;
-      grid-template-columns: auto auto auto auto;
-  }
-}
-*/
+
 .bgrid .rpbbButton {
     width: 30ch;
     overflow: hidden;
@@ -404,6 +385,13 @@ input#configFaderTime, input#configFadeInTime {
 }
 #config{
   padding-left: 10px;
+  overflow-y: auto;
+  max-height:90%;
+}
+#config #languageSelector,
+#config select{
+  padding-left:0;
+  padding-right:0;
 }
 
 div#fileIndex {
