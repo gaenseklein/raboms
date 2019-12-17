@@ -11,6 +11,8 @@ Primero intentamos hasta donde podemos llegar asi no más con puro html y javasc
 # como instalar
 
 En la carpeta "releases" estan las ultimas versiones. Guarda la version ultima en tu compu, ábrelo y ya. 
+la version más actual: [actual.tar.gz](releases/actual.tar.gz)
+último release: [actual.tar.gz](releases/0.4.1.zip)
 
 # idioma/language
 
