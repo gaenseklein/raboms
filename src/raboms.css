@@ -1,0 +1,301 @@
+/*idioma / language selection*/
+.langes, .langen{
+  display:none;
+}
+body.langes, body.langen{
+  display: unset;
+}
+
+body.langes .langes,
+body.langen .langen{
+  display:unset;
+}
+
+/*buttonarea*/
+div#buttonarea {
+  
+}
+#buttonarea button {
+	box-shadow:inset 0px 1px 0px 0px #bee2f9;
+	background:linear-gradient(to bottom, #63b8ee 5%, #468ccf 100%);
+	background-color:#63b8ee;
+	border-radius:6px;
+	border:1px solid #3866a3;
+	display:inline-block;
+	cursor:pointer;
+	color:#14396a;
+	font-family:Arial;
+	font-size:15px;
+	font-weight:bold;
+	padding:6px 24px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #7cacde;
+	max-width:20ch
+}
+#buttonarea button:hover {
+	background:linear-gradient(to bottom, #468ccf 5%, #63b8ee 100%);
+	background-color:#468ccf;
+}
+#buttonarea button:active {
+	position:relative;
+	top:1px;
+}
+
+div#newButtonDialog,
+#advancedButtonDialog {
+    display: none;
+    position: absolute;
+    z-index: 100;
+    background: white;
+    width: 60ch;
+    height: 27ch;
+    top: 10%;
+    left: 30%;
+    padding: 0 10ch;
+    border: 1px solid;
+    border-radius: 20px;
+    box-shadow: 0 0 24px -2px;
+}
+
+div#newButtonDialog.show,
+#advancedButtonDialog.show {
+    display: block;
+}
+
+.waiting div#archiveSelection {
+    display: none;
+}
+
+.waiting div#newButtonKey {
+    background: rgba(200,0,0,0.8);
+    padding: 2ch;
+    font-size: large;
+    width:unset;
+}
+
+div#newButtonKey {
+    font-size: xxx-large;
+    background: rgba(0,145,0,0.8);
+    padding: 1ch;
+    width: 3ch;
+    text-align: center;
+    float: left;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+div#archiveSelection {
+    font-size: x-large;
+}
+
+.buttonKey {
+    font-size: xx-large;
+    background: rgba(0,140,0,0.8);
+    min-width: 3ch;
+    text-align: center;
+    margin: 6px;
+    padding-left:1ch;
+    padding-right:1ch;
+}
+
+.playing .buttonKey {
+    background: rgba(200,0,0,0.7);
+}
+
+.rpbbButton {
+    display: flex;
+}
+
+.buttonSource {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+#config>div {
+    margin-top: 2ch;
+    border-bottom: 1px solid;
+}
+
+.hidden {
+    display: none;
+}
+
+.rpbbButton div {
+    display: inline-block;
+}
+
+.rpbbButton button {
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-left: 20px;
+}
+
+.buttonSource {
+    width: 50%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.volume input[type="range"] {
+    transform: rotate(-90deg);
+    margin-left:-4ch;
+}
+
+.rpbbButton {
+    border: 1px solid black;
+    border-radius: 20px;
+    margin: 10px;
+    padding: 10px;
+    box-shadow: 3px 3px 14px -6px black;
+}
+
+.buttonKey {
+    border-radius: 10px;
+    overflow:hidden;
+}
+
+button {
+    border-radius: 7px;
+    margin: 5px;
+}
+.buttonDuration {
+    margin: 1ch;
+    margin-right: 2ch;
+    min-width: 14ch;
+}
+
+@media only screen and (min-width: 750px){
+  div#fileIndex {
+      display: grid;
+      grid-template-columns: auto auto;
+  }
+}
+@media only screen and (min-width: 1100px){
+  div#fileIndex {
+      display: grid;
+      grid-template-columns: auto auto auto;
+  }
+}
+@media only screen and (min-width: 1500px){
+  div#fileIndex {
+      display: grid;
+      grid-template-columns: auto auto auto auto;
+  }
+}
+
+.bgrid .rpbbButton {
+    width: 40ch;
+    overflow: hidden;
+    display: grid;
+    grid-template-areas:
+        "devices description description ."
+        "key duration duration volume"
+        "key checkbox checkbox volume";
+    grid-template-columns:10ch 13ch 12ch 5ch;
+}
+
+.bgrid .buttonKey {
+    grid-area: key;
+    padding: 0;
+    margin:0;
+}
+
+.bgrid .buttonDevices{
+  grid-area:devices;
+  width:10ch;
+}
+
+.bgrid .buttonSource {
+    grid-area: description;
+    width: unset;
+}
+
+.bgrid .buttonDuration {
+    grid-area: duration;
+}
+.bgrid .volume{
+  grid-area:volume;
+  margin-top:10px;
+}
+.bgrid .checkbox{
+  grid-area:checkbox;
+}
+.bgrid .buttondelete{
+  grid-area:delete;
+  align-self: start;
+justify-self: start;
+width: 3ch;
+height: 3ch;
+background: none;
+text-align: center;
+margin-left: -1ch;
+margin-top: -1ch;
+color:red;
+font-weight:bold;
+}
+
+div#advancedButtonDialog.show {
+    display: grid;
+    grid-template-areas:
+        "title title close"
+        "fullpath fullpath ."
+        "volume volume ."
+        "key checkboxes delete";
+    height: unset;
+    padding-right: unset;
+    grid-template-columns: 1fr 1fr 10ch;
+    width: 60vw;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+button.closeDialog {
+    grid-area: close;
+    height: 6ch;
+    background: none;
+}
+
+#advancedButtonDialog h1 {
+    grid-area: title;
+}
+
+div#advancedButtonDialogFullPath {
+    grid-area: fullpath;
+}
+
+div#advancedButtonDialogKey {
+    grid-area: key;
+}
+
+div#advancedButtonDialogVolume {
+    grid-area: volume;
+}
+
+div#advancedButtonDialogCheckboxes {
+    grid-area: checkboxes;
+}
+
+div#advancedButtonDialogDeleteButton {
+    grid-area: delete;
+}
+
+/*backgroundanimation*/
+.rpbbButton {
+    background: linear-gradient(to right, rgba(100,0,0,0.7) 50%, transparent 50%);
+    background-size: 200% 100%;
+    background-position: right top;
+    transition: all 2s ease;
+}
+
+.rpbbButton.playing {
+    background-position: bottom left;
+}
+.playing button.buttonKey {
+    background: linear-gradient(to top, red 50%, transparent 50%);
+    background-size: 100% 200%;
+    background-position: bottom;
+}
+
+.playing.fadeout button.buttonKey {
+    /*transition: all 2s ease;*/
+    background-position: top;
+}

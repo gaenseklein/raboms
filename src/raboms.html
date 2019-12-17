@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<title>raBoms</title>
+<link rel="stylesheet" href="raboms.css">
+<script src="FileSaver.js"></script>
+<script>
+version = 0.4;
+
+function pBB(button, audiosource, bpath){
+    this.button = button;
+    if(bpath)this.basepath = bpath;
+    this.basepath = document.getElementById("basepath").value;
+    if(this.basepath.length<1){
+        alert("you have to set the basepath before choosing a file\nTienes que configurar la carpeta base de tus archivos");
+         document.getElementById("basepath").classList.add("unset");
+         document.getElementById("basepath").focus();
+        return;
+    }
+    if(this.basepath.charAt(this.basepath.length-1)!="/")this.basepath+="/";
+    if(typeof audiosource === "string"){
+        this.audioname = audiosource;
+        this.audiosource = this.basepath+this.audioname;
+        try{
+          this.audio = new Audio(this.audiosource);
+          this.audio.attachedKey = this.button;
+          this.audio.onloadedmetadata = function(){
+            raBoms.buttons[this.attachedKey].duration = this.duration;
+            raBoms.showFileIndex();
+          }
+        }catch(e){
+          this.error = e.message;
+        }
+        this.audio.onended = function() {
+            raBoms.audioEnded(this.attachedKey);
+            console.log("audio ended");
+            console.log(this);
+            console.log(this.attachedKey);
+        };
+    }else{
+        return;
+    }
+    this.play = function(){
+        this.audio.play();
+    }
+    this.stop = function(){
+        this.audio.pause();
+        this.audio.currentTime = 0;
+    }
+    this.volume = raBoms.standardVolume;
+    this.audio.volume = this.volume;
+}
+
+raBoms = {
+    active:true,
+    temporaryButton:null,
+    buttons:{},
+    playingbuttons:[],
+    addButton:function(button,audiosource, bpath){
+        this.buttons[button] = new pBB(button,audiosource, bpath);
+    },
+    playButton:function(button){
+        if(this.active && this.buttons[button]){
+            if(this.playingbuttons.indexOf(button)<0){
+                this.playingbuttons.push(button);
+                this.buttons[button].play();
+                var dur = Math.floor(this.buttons[button].duration);
+                var rpbbutton = document.getElementById("rpbbid"+button);
+                rpbbutton.style.transition = "all " +dur+ "s linear";
+                rpbbutton.classList.add("playing");
+            }else{
+                var choice = document.getElementById("secondClickChoice").value;
+                if(choice==="stop"){
+                    this.stopButton(button);
+                }else if(choice==="restart"){
+                    this.stopButton(button);
+                    setTimeout("raBoms.playButton('"+button+"')",10);
+                }else if(choice==="fadeout"){
+                    this.fadeoutButton(button);
+                }
+            }
+        }
+        if(this.temporaryButton!=null)this.setNewButtonKey(button);
+    },
+    stopButton:function(button){
+        if(this.buttons[button]){
+            this.buttons[button].stop();
+            this.stopYieldDate = new Date().getTime();
+        }
+        var plb = document.getElementById("rpbbid"+button);
+        if(plb){
+          plb.style.transition = "all 100ms ease";
+          plb.classList.remove("playing");
+        }
+        console.log(document.getElementById("rpbbid"+button));
+        var plind = this.playingbuttons.indexOf(button);
+        if(plind>=0)this.playingbuttons.splice(plind,1);
+    },
+    audioEnded:function(button){
+        if(this.buttons[button] && this.buttons[button].loop){
+          this.stopButton(button);
+          setTimeout("raBoms.playButton('"+button+"')",10);
+          return;
+        }
+        for(var x=this.playingbuttons.length-1;x>=0;x--)if(this.playingbuttons[x]===button)this.playingbuttons.splice(x,1);
+        var abutton  = document.getElementById("rpbbid"+button);
+        abutton.style.transition = "all 300ms ease";
+        abutton.classList.remove("playing");
+    },
+    setLoop:function(key,value){
+      if(this.buttons[key]){
+        this.buttons[key].loop = value;
+      }
+    },
+    stopAll:function(){
+        for(var x=0;x<this.playingbuttons.length;x++)this.stopButton(this.playingbuttons[x]);
+        this.playingbuttons = new Array();
+    },
+    checkForButton:function(button){
+        if(this.buttons[button])return true;
+    },
+    createNewButton:function(){
+        this.temporaryButton = {key:null,audiosource:null};
+        var nbd =  document.getElementById("newButtonDialog");
+        nbd.classList.add("show");
+        nbd.classList.add("waiting");
+        document.getElementById("newButtonKey").innerHTML = "Please press Key you want to connect with File <br>"+
+        "Apreta la tecla que quieres usar para el archivo";
+        this.active=false;
+        var upload = document.getElementById("upload");
+        upload.value="";
+        upload.onchange = function(e){
+            var filename = this.files[0].name;
+            raBoms.finishFile(filename);
+        }
+
+
+    },
+    setNewButtonKey:function(button){
+        this.temporaryButton.key = button;
+        var nbk = document.getElementById("newButtonKey");
+        nbk.innerText = button;
+        var nbd = document.getElementById("newButtonDialog").classList.remove("waiting");
+
+    },
+    finishFile:function(filename){
+        this.temporaryButton.audiosource = filename;
+        var nbd = document.getElementById("newButtonDialog");
+        nbd.classList.remove("show");
+        this.addButton(this.temporaryButton.key,filename);
+        this.active = true;
+        this.temporaryButton = null;
+        this.showFileIndex();
+    },
+    removeButton:function(button){
+        if(this.buttons[button])delete this.buttons[button];
+        this.showFileIndex();
+    },
+    setVolume:function(button,volume){
+        if(this.buttons[button]){
+            this.buttons[button].audio.volume = volume/100;
+            this.buttons[button].volume = volume/100;
+        }
+    },
+    showAdvancedMenu:function(key){
+        var advbdialog = document.getElementById("advancedButtonDialog");
+        var dialogtitle = document.getElementById("advancedButtonDialogTitle");
+        var dialogfullpath = document.getElementById("advancedButtonDialogFullPath");
+        var dialogvolume = document.getElementById("advancedButtonDialogVolumeInput");
+        var dialogdelb = document.getElementById("advancedButtonDialogDeleteButtonButton");
+        var dialogkey = document.getElementById("advancedButtonDialogKey");
+        var abutton = this.buttons[key];
+        dialogtitle.innerText = abutton.audioname;
+        dialogkey.innerText = key;
+        dialogfullpath.innerText = "full path / Ruta completa:"+abutton.audiosource;
+        dialogvolume.value = abutton.volume * 100 || 70;
+        dialogvolume.attachedKey = key;
+        dialogvolume.onchange = function(e){
+          raBoms.setVolume(this.attachedKey,this.value);
+
+        }
+        dialogdelb.attachedKey = key;
+        dialogdelb.onclick = function(e){
+          raBoms.removeButton(this.attachedKey);
+        }
+
+        advbdialog.classList.add("show");
+    },
+    showFileIndex:function(){
+        var fidiv = document.getElementById("fileIndex");
+        fidiv.innerHTML = "";
+        Object.keys(this.buttons).forEach(function(key,index) {
+            // key: the name of the object key
+            // index: the ordinal position of the key within the object
+
+            var audiosource = raBoms.buttons[key].audiosource;
+            var audioname = raBoms.buttons[key].audioname;
+            var volume = raBoms.buttons[key].audio.volume * 100;
+            var duration = Math.floor(raBoms.buttons[key].duration*100)/100;
+            let durationminutes = Math.floor(duration/60);
+            let durationseconds = Math.floor((duration - (durationminutes *60))*100)/100;
+            duration = durationminutes + " min "+durationseconds+" s";
+            var loop = raBoms.buttons[key].loop;
+            var devices = "";
+            devices = '<select class="buttonDevices" onchange="raBoms.setDevice(\''+key+'\',this.value)">';
+            devices+='<option value="default" checked>default</option>';
+            if(raBoms.audiodevices){
+              for(var x=1;x<raBoms.audiodevices.length;x++){
+                let ad=raBoms.audiodevices[x];
+                devices+='<option value="'+ad.deviceId+'">';
+                if(x===0)devices+="default";else devices+="dev"+x;
+                devices+='</option>';
+              }
+            }
+            devices+='<option value="delete">delete/borrar</option>';
+            devices+="</select>";
+
+            if(loop)loop=" checked";else loop="";
+
+            var fidiv = document.getElementById("fileIndex");
+            var htmlstring = fidiv.innerHTML +
+'<div class="rpbbButton" id="rpbbid'+key+'">'+
+'<button class="buttonKey" onclick="raBoms.playButton(\''+key+'\')" title="'+key+'">'+key+'</button>'+
+'<div class="buttonSource" title="'+audiosource+'">'+audioname+'</div>'+
+'<div class="buttonDuration">'+duration+'</div>'+
+'<div class="volume"><input type="range" id="rpbbvolume'+key+'" oninput="raBoms.setVolume(\''+key+'\',this.value)" value="'+volume+'" min="1" max="100"></div>'+
+'<div class="checkbox"><label>loop</label><input type="checkbox" onclick="raBoms.setLoop(\''+key+'\',this.value)"'+loop+'></div>'+
+devices;
+//'<button class="buttondelete" onclick="raBoms.removeButton(\''+key+'\')" title="delete/borrar">X</button></div>';
+            fidiv.innerHTML = htmlstring;
+        });
+        if(Object.keys(this.buttons).length>5)fidiv.classList.add("bgrid");
+        this.saveToCache();
+    },
+    saveToCache:function(){
+        var saveObject = JSON.stringify(this.buttons);
+        var saveConfig = JSON.stringify({
+          fader:this.fader,
+          secondClick:document.getElementById("secondClickChoice").value
+        });
+        var basepath = document.getElementById("basepath").value;
+        window.localStorage.setItem("radioPBBbasepath",basepath);
+        window.localStorage.setItem("radioPBBfiles",saveObject);
+        window.localStorage.setItem("radioPBBconfig",saveConfig);
+    },
+    loadFromCache:function(){
+        var basepath = window.localStorage.getItem("radioPBBbasepath");
+        if(basepath)document.getElementById("basepath").value = basepath;
+        var cbstring = window.localStorage.getItem("radioPBBfiles");
+        if(cbstring){
+            var cachedbuttons = JSON.parse(cbstring);
+            var keys = Object.keys(cachedbuttons);
+            for(var x=0;x<keys.length;x++){
+                var actb = cachedbuttons[keys[x]];
+                this.addButton(actb.button, actb.audioname, actb.basepath);
+
+            }
+        }
+        var configstring = window.localStorage.getItem("radioPBBconfig");
+        if(configstring){
+          var configobj = JSON.parse(configstring);
+          if(configobj.fader){
+            this.fader=configobj.fader;
+            document.getElementById("configFaderTime").value = this.fader.fadeouttime;
+            document.getElementById("configFaderMultiplicator").value = this.fader.multiplicator;
+            document.getElementById("configFaderSteps").value = this.fader.steps;
+          }
+          if(configobj.standardVolume)this.standardVolume=configobj.standardVolume;
+          if(configobj.secondClick)document.getElementById("secondClickChoice").value=configobj.secondClick;
+
+        }
+        this.showFileIndex();
+    },
+    loadFromDisc:function(jsonstring){
+        var saveObject = JSON.parse(jsonstring);
+        document.getElementById("basepath").value=saveObject.basepath;
+         var cachedbuttons = saveObject.buttons
+         var keys = Object.keys(cachedbuttons);
+         for(var x=0;x<keys.length;x++){
+                var actb = cachedbuttons[keys[x]];
+                this.addButton(actb.button, actb.audioname, actb.basepath);
+        }
+        if(saveObject.fader){
+          this.fader=saveObject.fader;
+          document.getElementById("configFaderTime").value = this.fader.fadeouttime;
+          document.getElementById("configFaderMultiplicator").value = this.fader.multiplicator;
+          document.getElementById("configFaderSteps").value = this.fader.steps;
+        }
+        if(saveObject.standardVolume)this.standardVolume=saveObject.standardVolume;
+        if(saveObject.secondClick)document.getElementById("secondClickChoice").value=saveObject.secondClick;
+        this.showFileIndex();
+    },
+    init:function(){
+        this.standardVolume = 0.7;
+        this.fader = {
+          multiplicator: 0.7,
+          fadeouttime:2000,
+          steps:10
+        }
+        this.loadFromCache();
+        document.getElementById("configFaderTime").value = this.fader.fadeouttime;
+        document.getElementById("configFaderMultiplicator").value = this.fader.multiplicator;
+        document.getElementById("configFaderSteps").value = this.fader.steps;
+        if(typeof saveAs === "function"){
+            var savetoDiskButton = document.createElement("Button");
+            savetoDiskButton.innerHTML = "<span class='langen'>Save Project</span><span class='langes'>Guarda Projecto</span>";
+            savetoDiskButton.onclick = function(){
+                var saveObject = {};
+                saveObject.basepath = document.getElementById("basepath").value;
+                saveObject.buttons = raBoms.buttons;
+                saveObject.standardVolume = raBoms.standardVolume;
+                saveObject.fader = raBoms.fader;
+                saveObject.secondClick = document.getElementById("secondClickChoice").value;
+                var saveString = JSON.stringify(saveObject);
+                var exportfilename = "raBomsConfig.txt";
+                let blob = new Blob([saveString],{type:"text/plain;charset=utf-8"});
+                saveAs(blob, exportfilename);
+            }
+            document.getElementById("FileSaverDownload").classList.add("hidden");
+            var buttonarea = document.getElementById("buttonarea");
+            buttonarea.appendChild(savetoDiskButton);
+            var loadFromDiscButton = document.createElement("button");
+            loadFromDiscButton.innerHTML = "<span class='langen'>Load Project </span><span class='langes'> Abre Projecto</span>";
+            loadFromDiscButton.onclick = function(){
+                var lfd = document.getElementById("lfdInput");
+                if(lfd){
+                    lfd.value="";
+                    lfd.click();
+                }
+            }
+            var loadFDinput = document.createElement("input");
+            loadFDinput.type="file";
+            loadFDinput.id="lfdInput";
+            loadFDinput.onchange=function(){
+                var file = this.files[0];
+                 if(file.name.substring(file.name.length-3)==="txt"){
+                    var reader = new FileReader();
+                    reader.onload = function(e){
+                        raBoms.loadFromDisc(reader.result);
+                    }
+                    reader.readAsText(file);
+                }
+            }
+            loadFDinput.style.display="none";
+            buttonarea.appendChild(loadFDinput);
+            buttonarea.appendChild(loadFromDiscButton);
+        }else{
+          if(confirm("you dont have installed FileSaver.js yet. Do you want to use it directly from the web? to install FileSaver.js once and for all just download it and save it in the same directory as this html-archive."+
+          "\nno tienes instalado filesaver.js. quieres usarlo directamente del internet? para ese mensaje desaparece guardate FileSaver.js a la misma carpeta donde esta este archivo mismo: https://raw.githubusercontent.com/eligrey/FileSaver.js/master/dist/FileSaver.js")){
+            var jsfile = document.createElement('script');
+            jsfile.setAttribute("type","text/javascript");
+            jsfile.setAttribute("src", "https://raw.githubusercontent.com/eligrey/FileSaver.js/master/dist/FileSaver.js");
+            document.getElementsByTagName("head")[0].appendChild(jsfile);
+          }
+        }
+        //getting device-ids:
+        this.initDevices();
+    },
+    initDevices: async function(){
+      var alldevices = await navigator.mediaDevices.enumerateDevices();
+      var audiodevices = new Array();
+      for(var x=0;x<alldevices.length;x++)if(alldevices[x].kind==="audiooutput")audiodevices.push(alldevices[x]);
+      this.audiodevices = audiodevices;
+      this.showFileIndex();
+    },
+    fadeout:function(key, restTime, multiplicator,interval, startdate){
+        var olddate = startdate;
+        if(!olddate)olddate=new Date().getTime();
+        var newdate = new Date().getTime();
+        var stopyielded = (this.stopYieldDate && this.stopYieldDate > olddate && this.stopYieldDate<newdate);
+        var button = raBoms.buttons[key];
+        if(!button)return;
+        var oldvolume = button.audio.volume;
+        button.audio.volume = oldvolume*multiplicator;
+        var actseconds = restTime -interval;
+        console.log("fadeout key "+key+" volumeold:"+oldvolume+" -> new volume"+button.audio.volume+" resttime:"+restTime);
+        if(restTime>0 && !stopyielded && raBoms.playingbuttons.indexOf(key)>-1){
+     setTimeout("raBoms.fadeout('"+key+"',"+actseconds+","+multiplicator+","+interval+","+newdate+")",interval);
+        }else{
+            this.stopButton(key);
+            button.audio.volume = button.volume || this.standardVolume;
+        }
+    },
+    fadeoutAll:function(){
+        for(var x=0;x<this.playingbuttons.length;x++){
+            var actkey = this.playingbuttons[x];
+            this.fadeoutButton(actkey);
+        }
+    },
+    fadeoutButton:function(button){
+        var fadeouttime = this.fader.fadeouttime;
+        var multiplicator = this.fader.multiplicator;
+        var interval = fadeouttime / this.fader.steps;
+        var transition = "all"+fadeouttime+"ms ease;"
+        var buttondiv = document.getElementById("rpbbid"+button);
+        buttondiv.classList.add("fadeout");
+        var buttonb = buttondiv.getElementsByClassName("buttonKey")[0];
+        //buttonb.style.transition = transition;
+        buttonb.style.transitionDuration = fadeouttime+"ms";
+        setTimeout("document.getElementById('rpbbid"+button+"').classList.remove('fadeout')",fadeouttime);
+        setTimeout("document.getElementById('rpbbid"+button+"').getElementsByClassName('buttonKey')[0].style.transition=''",fadeouttime);
+        this.fadeout(button,fadeouttime,multiplicator,interval);
+
+    },
+    turnUpAll:function(){
+      for(var x=0;x<this.playingbuttons.length;x++){
+        var actb = this.buttons[this.playingbuttons[x]];
+        if(actb.volume<=0.9)actb.volume = actb.volume + 0.1; else actb.volume=1;
+        actb.audio.volume = actb.volume;
+        document.getElementById("rpbbvolume"+this.playingbuttons[x]).value=actb.volume*100;
+      }
+    },
+    turnDownAll:function(){
+      for(var x=0;x<this.playingbuttons.length;x++){
+        var actb = this.buttons[this.playingbuttons[x]];
+        if(actb.volume>=0.1)actb.volume = actb.volume - 0.1; else actb.volume=0;
+          actb.audio.volume = actb.volume;
+        document.getElementById("rpbbvolume"+this.playingbuttons[x]).value=actb.volume*100;
+      }
+    },
+    setDevice:function(key,id){
+      if(id==="delete"){
+        this.removeButton(key);
+        return;
+      }
+        console.log("try id"+id);
+      this.buttons[key].audio.setSinkId(id).then(function(e){
+        console.log("new sink id");
+      });
+      console.log("audio "+key+" is now on "+this.buttons[key].audio.sinkId);
+    }
+
+}
+
+window.addEventListener("keydown",function(e){
+  if(e.key==="ArrowDown"){
+    raBoms.turnDownAll();
+    e.preventDefault();
+  }else if(e.key==="ArrowUp"){
+    raBoms.turnUpAll();
+    e.preventDefault();
+  }
+});
+window.addEventListener("keyup", function(e){
+    if(e.key==="Escape"){
+        raBoms.stopAll();
+    }else if(e.key==="Enter"){
+        raBoms.fadeoutAll();
+    }else{
+        raBoms.playButton(e.key);
+    }
+});
+
+
+</script>
+</head>
+<body onload="raBoms.init()" class="langes">
+<h1>raBoms V 0.4</h1>
+<div id="buttonarea">
+    <button id="newFileButton" onclick="raBoms.createNewButton()"><span class="buttonSymbol">+</span><span class="langen">Add new File</span> <span class="langes">Añadir nuevo archivo</span></button>
+    <select id="languageSelector" onchange='document.body.classList.remove("langes");document.body.classList.remove("langen");document.body.classList.add(this.value);'>
+      <option value="langes">es</option>
+      <option value="langen">en</option>
+    </select>
+    <button id="stopAllButton" onclick="raBoms.stopAll()">
+      <span class="langen">Stop all</span>
+      <span class="langes">Para todo</span>
+      <span class="shortcutDisplay">(Escape)</span>
+    </button>
+    <button id="stopAllButton" onclick="raBoms.fadeoutAll()">
+      <span class="langen">Fadeout all</span>
+      <span class="langes">Fadeout todo</span>
+      <span class="shortcutDisplay">(Enter)</span>
+    </button>
+</div>
+<div id="fileIndex">
+
+</div>
+<div id="newButtonDialog" class="waiting">
+    <h2><span class="langen">Add new File</span><span class="langes">Añadir nuevo archivo</span></h2>
+    <div id="newButtonKey">
+        <span class="langen">Please press Key you want to connect with File </span>
+        <span class="langes">Apreta la tecla que quieres usar para el archivo</span>
+    </div>
+    <div id="archiveSelection">
+        <span class="langes">Please select a File</span><span class="langes">Elige el archivo</span>
+        <input type="file" id="upload">
+    </div>
+</div>
+<div id="advancedButtonDialog">
+  <button class="closeDialog" onclick="document.getElementById('advancedButtonDialog').classList.remove('show');">close / salir</button>
+    <h1><span class="langen">Advanced Options </span><span class="langes"> Opciones avancadas</span> <span id="advancedButtonDialogTitle"></span>
+    </h1>
+    <div id="advancedButtonDialogFullPath"></div>
+    <div id="advancedButtonDialogKey" class="buttonKey"></div>
+    <div id="advancedButtonDialogVolume" class="volume"><span class="screenreaderonly">Base-Volume:</span><input id="advancedButtonDialogVolumeInput" type="range" onmousedown="raBoms.setVolume(\''+key+'\',this.value)" value="'+volume+'" min="1" max="100"></div>
+    <div id="advancedButtonDialogCheckboxes">
+        <div><label>loop</label><input type="checkbox" id="advancedButtonDialogLoop"></div>
+    </div>
+    <div id="advancedButtonDialogDeleteButton"><button id="advancedButtonDialogDeleteButtonButton">delete<br>borrar</button></div>
+</div>
+<div id="config">
+    <h1><span class="langen">Configuration</span><span class="langes">Configuración</span></h1>
+    <div>
+        <label><span class="langen">Full path to directory containing the files</span><span class="langes"> donde esta la carpeta de tus archivos </span></label>
+        <input type="text" id="basepath"><br>
+        <span><span class="langes">Example</span> <span class="langes">ejemplo</span>: /home/me/musica/efectos/</span>
+    </div>
+    <div>
+        <label><span class="langen">what to do on second click if audio of key is still playing </span> <span class="langes">que hace al segundo click si el audio de la tecla esta andando todavia</span></label>
+        <select id="secondClickChoice">
+           <option value="stop" selected><span class="langen">Stop</span><span class="langes">Para</span></option>
+           <option value="restart"><span class="langen">Restart</span> <span class="langes">reinicia</span></option>
+           <option value="fadeout"><span class="langen">Fadeout</span> <span class="langes">Para bajando</span></option>
+        </select>
+    </div>
+    <div>
+      <h3>Fader</h3>
+      <div><label><span class="langen">Time in ms</span> <span class="langes">tiempo en milisegundos</span></label><input id="configFaderTime" type="text" onkeyup="raBoms.fader.fadeouttime = this.value;"></div>
+      <div><label><span class="langen">multiplicator </span> <span class="langes">multiplicador</span></label><input id="configFaderMultiplicator" type="text" onkeyup="raBoms.fader.multiplicator = this.value;"></div>
+      <div><label><span class="langes">steps </span> <span class="langes">pasos</span></label><input id="configFaderSteps" type="text" onkeyup="raBoms.fader.steps = this.value;"></div>
+    </div>
+    <div>
+        <div id="FileSaverDownload">
+        <span class="langen">To Save your Config to Disc you have to download FileSaver.js to the same directory this file is within</span>
+        <span class="langes">Para guardar tu configuración al disco tienes que instalar FileSaver.js a la misma carpeta donde esta este pagina guardado.</span>
+        <a href="http://purl.eligrey.com/github/FileSaver.js">Download Filesaver.js</a> |
+        </div>
+        <div><span class="langen">To Save directly to your Disc we use the Filesaver.js library:</span><span class="langes">Para guardar usamos la libreria FileSaver.js. Licencia:</span><br>
+            <a href="https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md">License</a>
+        </div>
+    </div>
+
+</div>
+
+<div id="helpdialog">
+<h1><span class="langen">How it works</span> <span class="langes"> Como usar</span></h1>
+<div class="langen">
+1. Configure the Base-Directory, the full path to the directory where your audiofiles are stored within<br>
+2. Click on Add new File, a Dialog pops up<br>
+3. When Dialog is up press Key you want to use<br>
+4. After that choose File from your Filesystem to play on this Key<br>
+5. If you want you can alter the Base-Volume with the Slider on the Right<br>
+====> Just press your Button and it will play back the sound<br>
+To Cancel all ongoing sounds just press "Escape"<br>
+To Activate "Fade Out" for all press "Enter"<br>
+With ArrowUp/ArrowDown you can alter current going Track Volumes<br>
+</div><div class="langes">
+1. Configura la carpeta base de tus archivos. Debe tener la Ruta completa a la carpeta donde estan los audios que quieres usar. Si hay más que una carpeta - primero añada todos de una carpeta, cambia la carpeta base y despues sigues con los demás<br>
+2. Apreta el Buton "Añadir nuevo archivo". un Dialogo aparece.<br>
+3. Si el Dialogo esta visible apreta la tecla que quieres usar para el sonido.<br>
+4. Despues elige el archivo que quieres usar (apreta el buton que aparece)<br>
+5. Si quieres puedes cambiar el volumen con el slider. <br>
+=====> Apreta la tecla y se tira el sonido<br>
+Si quieres quitar puedes apretar "Escape" y termina todo<br>
+Si quieres quitar lento a todo (fade-out) apreta "Enter"<br>
+Con Tecla Arriba/Abajo se controla el volumen directo de todos audios andando al momento<br>
+</div>
+</div>
+</body>
+</html>
