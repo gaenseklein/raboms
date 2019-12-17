@@ -11,8 +11,8 @@ version = 0.4;
 
 function pBB(button, audiosource, bpath){
     this.button = button;
-    if(bpath)this.basepath = bpath;
     this.basepath = document.getElementById("basepath").value;
+    if(bpath)this.basepath = bpath;
     if(this.basepath.length<1){
         alert("you have to set the basepath before choosing a file\nTienes que configurar la carpeta base de tus archivos");
          document.getElementById("basepath").classList.add("unset");
@@ -30,8 +30,30 @@ function pBB(button, audiosource, bpath){
             raBoms.buttons[this.attachedKey].duration = this.duration;
             raBoms.showFileIndex();
           }
+          this.audio.onerror = function(e){
+            //alert(e.message);
+            var idiomaes =(document.getElementById("languageSelector").value==="langes")
+            var filename = raBoms.buttons[this.attachedKey].audioname;
+            var basepath = raBoms.buttons[this.attachedKey].basepath;
+            var ptext = "An error occured while loading the source. Maybe you went to a subdirectory? \n Current full path of audiofile: ";
+            if(idiomaes)ptext="no puedo abrir el archivo \""+filename+"\". Quiza abriste en una otra carpeta? \n Carpeta usando actualmente: ";
+            ptext+=basepath;
+            if(idiomaes)ptext+="\nFijate y entra por nuevo la ruta completa a la carpeta donde esta el archivo por favor";
+            var response = prompt(ptext,basepath);
+            if(response===null){
+              setTimeout("raBoms.removeButton('"+this.attachedKey+"')",10);
+              return;
+            }else{
+              document.getElementById("basepath").value=response;
+              setTimeout("raBoms.removeButton('"+this.attachedKey+"')",10);
+              setTimeout("raBoms.addButton('"+this.attachedKey+"','"+filename+"','"+response+"');",20);
+            }
+
+          }
         }catch(e){
-          this.error = e.message;
+          console.log("error catched");
+          console.log(e);
+
         }
         this.audio.onended = function() {
             raBoms.audioEnded(this.attachedKey);
@@ -70,6 +92,7 @@ raBoms = {
                 var rpbbutton = document.getElementById("rpbbid"+button);
                 rpbbutton.style.transition = "all " +dur+ "s linear";
                 rpbbutton.classList.add("playing");
+                if(this.buttons[button].fadeInChecked ==="on")this.fadeinButton(button);
             }else{
                 var choice = document.getElementById("secondClickChoice").value;
                 if(choice==="stop"){
@@ -126,8 +149,8 @@ raBoms = {
         var nbd =  document.getElementById("newButtonDialog");
         nbd.classList.add("show");
         nbd.classList.add("waiting");
-        document.getElementById("newButtonKey").innerHTML = "Please press Key you want to connect with File <br>"+
-        "Apreta la tecla que quieres usar para el archivo";
+        document.getElementById("newButtonKey").innerHTML = "<span class='langen'>Please press Key you want to connect with File</span>"+
+        "<span class='langes'>Apreta la tecla que quieres usar para el archivo</span>";
         this.active=false;
         var upload = document.getElementById("upload");
         upload.value="";
@@ -218,6 +241,8 @@ raBoms = {
             devices+="</select>";
 
             if(loop)loop=" checked";else loop="";
+            var fadein = raBoms.buttons[key].fadeInChecked;
+            if(fadein)fadein = " checked";else fadein="";
 
             var fidiv = document.getElementById("fileIndex");
             var htmlstring = fidiv.innerHTML +
@@ -226,7 +251,10 @@ raBoms = {
 '<div class="buttonSource" title="'+audiosource+'">'+audioname+'</div>'+
 '<div class="buttonDuration">'+duration+'</div>'+
 '<div class="volume"><input type="range" id="rpbbvolume'+key+'" oninput="raBoms.setVolume(\''+key+'\',this.value)" value="'+volume+'" min="1" max="100"></div>'+
-'<div class="checkbox"><label>loop</label><input type="checkbox" onclick="raBoms.setLoop(\''+key+'\',this.value)"'+loop+'></div>'+
+'<div class="checkbox">'+
+'<label>loop</label><input type="checkbox" onclick="raBoms.setLoop(\''+key+'\',this.value)"'+loop+'>'+
+'<label>fadein</label><input type="checkbox" onclick="raBoms.setFadeIn(\''+key+'\',this.value)"'+fadein+'>'+
+'</div>'+
 devices;
 //'<button class="buttondelete" onclick="raBoms.removeButton(\''+key+'\')" title="delete/borrar">X</button></div>';
             fidiv.innerHTML = htmlstring;
@@ -238,7 +266,9 @@ devices;
         var saveObject = JSON.stringify(this.buttons);
         var saveConfig = JSON.stringify({
           fader:this.fader,
-          secondClick:document.getElementById("secondClickChoice").value
+          secondClick:document.getElementById("secondClickChoice").value,
+          muteToSpeakVolume:this.muteToSpeakVolume
+
         });
         var basepath = document.getElementById("basepath").value;
         window.localStorage.setItem("radioPBBbasepath",basepath);
@@ -264,12 +294,15 @@ devices;
           if(configobj.fader){
             this.fader=configobj.fader;
             document.getElementById("configFaderTime").value = this.fader.fadeouttime;
-            document.getElementById("configFaderMultiplicator").value = this.fader.multiplicator;
+            document.getElementById("configFaderMultiplicator").value = this.fader.multiplicator*10;
             document.getElementById("configFaderSteps").value = this.fader.steps;
           }
           if(configobj.standardVolume)this.standardVolume=configobj.standardVolume;
           if(configobj.secondClick)document.getElementById("secondClickChoice").value=configobj.secondClick;
-
+          if(configobj.muteToSpeakVolume){
+            this.muteToSpeakVolume = configobj.muteToSpeakVolume;
+            document.getElementById("configMuteToSpeakRange").value = configobj.muteToSpeakVolume*100;
+          }
         }
         this.showFileIndex();
     },
@@ -285,7 +318,7 @@ devices;
         if(saveObject.fader){
           this.fader=saveObject.fader;
           document.getElementById("configFaderTime").value = this.fader.fadeouttime;
-          document.getElementById("configFaderMultiplicator").value = this.fader.multiplicator;
+          document.getElementById("configFaderMultiplicator").value = this.fader.multiplicator*10;
           document.getElementById("configFaderSteps").value = this.fader.steps;
         }
         if(saveObject.standardVolume)this.standardVolume=saveObject.standardVolume;
@@ -294,18 +327,20 @@ devices;
     },
     init:function(){
         this.standardVolume = 0.7;
+        this.muteToSpeakVolume = 0.3;
         this.fader = {
           multiplicator: 0.7,
           fadeouttime:2000,
-          steps:10
+          steps:10,
+          fadeintime:5000
         }
         this.loadFromCache();
         document.getElementById("configFaderTime").value = this.fader.fadeouttime;
-        document.getElementById("configFaderMultiplicator").value = this.fader.multiplicator;
+        document.getElementById("configFaderMultiplicator").value = this.fader.multiplicator*10;
         document.getElementById("configFaderSteps").value = this.fader.steps;
         if(typeof saveAs === "function"){
             var savetoDiskButton = document.createElement("Button");
-            savetoDiskButton.innerHTML = "<span class='langen'>Save Project</span><span class='langes'>Guarda Projecto</span>";
+            savetoDiskButton.innerHTML = "<span class='langen'>Save Project</span><span class='langes'>Guarda projecto</span>";
             savetoDiskButton.onclick = function(){
                 var saveObject = {};
                 saveObject.basepath = document.getElementById("basepath").value;
@@ -322,7 +357,7 @@ devices;
             var buttonarea = document.getElementById("buttonarea");
             buttonarea.appendChild(savetoDiskButton);
             var loadFromDiscButton = document.createElement("button");
-            loadFromDiscButton.innerHTML = "<span class='langen'>Load Project </span><span class='langes'> Abre Projecto</span>";
+            loadFromDiscButton.innerHTML = "<span class='langen'>Load Project </span><span class='langes'> Abre projecto</span>";
             loadFromDiscButton.onclick = function(){
                 var lfd = document.getElementById("lfdInput");
                 if(lfd){
@@ -404,6 +439,34 @@ devices;
         this.fadeout(button,fadeouttime,multiplicator,interval);
 
     },
+    fadein:function(key,stepArray,interval){
+      var button = raBoms.buttons[key];
+      if(!button)return;
+      var steparray = stepArray;
+      if(typeof steparray ==="string")steparray = stepArray.split(",");
+
+      var nextvalue = steparray.pop();
+      button.audio.volume = nextvalue;
+      if(steparray.length>0)setTimeout("raBoms.fadein('"+key+"','"+steparray+"','"+interval+"')",interval);
+    },
+    fadeinButton:function(key){
+      var steparray = new Array();
+      var button = this.buttons[key];
+      var targetvolume = button.volume;
+      steparray.push(targetvolume);
+      for(var x=0;x<this.fader.steps;x++){
+        targetvolume = targetvolume * this.fader.multiplicator;
+        steparray.push(targetvolume)
+      }
+      var fadeintime = this.fader.fadeintime;
+      if(!fadeintime)this.fader.fadeintime=2000;
+      var interval = Math.floor(this.fader.fadeintime / this.fader.steps);
+      button.audio.volume=0.01;
+      this.fadein(key,steparray,interval);
+    },
+    setFadeIn:function(key,value){
+      this.buttons[key].fadeInChecked = value;
+    },
     turnUpAll:function(){
       for(var x=0;x<this.playingbuttons.length;x++){
         var actb = this.buttons[this.playingbuttons[x]];
@@ -430,7 +493,23 @@ devices;
         console.log("new sink id");
       });
       console.log("audio "+key+" is now on "+this.buttons[key].audio.sinkId);
+    },
+    muteToSpeak:function(){
+      document.getElementById("muteToSpeakButton").classList.add("active");
+      this.mutedButtons = new Array();
+      for(var x=0;x<this.playingbuttons.length;x++){
+        this.mutedButtons.push(this.playingbuttons[x]);
+        this.buttons[this.playingbuttons[x]].audio.volume = this.muteToSpeakVolume;
+      }
+    },
+    unmuteToSpeak:function(){
+      document.getElementById("muteToSpeakButton").classList.remove("active")
+      for(var x=0;x<this.mutedButtons.length;x++){
+        var actb = this.buttons[this.mutedButtons[x]];
+        actb.audio.volume = actb.volume;
+      }
     }
+
 
 }
 
@@ -441,13 +520,23 @@ window.addEventListener("keydown",function(e){
   }else if(e.key==="ArrowUp"){
     raBoms.turnUpAll();
     e.preventDefault();
+  }else if(e.key===" "){
+    raBoms.muteToSpeak();
   }
 });
 window.addEventListener("keyup", function(e){
+    //console.log(e);
+    if(e.target && e.target.type &&
+      (e.target.type==="text" || e.target.type==="file") &&
+       e.target.tagName==="INPUT")return;
     if(e.key==="Escape"){
         raBoms.stopAll();
+        var allshown = document.getElementsByClassName("show");
+        while(allshown.length>0)allshown[0].classList.remove("show");
     }else if(e.key==="Enter"){
         raBoms.fadeoutAll();
+    }else if(e.key===" "){
+      raBoms.unmuteToSpeak();
     }else{
         raBoms.playButton(e.key);
     }
@@ -457,13 +546,10 @@ window.addEventListener("keyup", function(e){
 </script>
 </head>
 <body onload="raBoms.init()" class="langes">
-<h1>raBoms V 0.4</h1>
+<div id="rabomswrapper">
 <div id="buttonarea">
+  <h1 id="rabomstitle">raBoms<br>V 0.4</h1>
     <button id="newFileButton" onclick="raBoms.createNewButton()"><span class="buttonSymbol">+</span><span class="langen">Add new File</span> <span class="langes">Añadir nuevo archivo</span></button>
-    <select id="languageSelector" onchange='document.body.classList.remove("langes");document.body.classList.remove("langen");document.body.classList.add(this.value);'>
-      <option value="langes">es</option>
-      <option value="langen">en</option>
-    </select>
     <button id="stopAllButton" onclick="raBoms.stopAll()">
       <span class="langen">Stop all</span>
       <span class="langes">Para todo</span>
@@ -473,6 +559,11 @@ window.addEventListener("keyup", function(e){
       <span class="langen">Fadeout all</span>
       <span class="langes">Fadeout todo</span>
       <span class="shortcutDisplay">(Enter)</span>
+    </button>
+    <button id="muteToSpeakButton" onmousedown="raBoms.muteToSpeak()" onmouseup="raBoms.unmuteToSpeak()">
+      <span class="langen">Mute to Speak</span>
+      <span class="langes">Baja todo para hablar</span>
+      <span class="shortcutDisplay">(<span class="langen">Space</span><span class="langes">Espacio</span>)</span>
     </button>
 </div>
 <div id="fileIndex">
@@ -485,7 +576,11 @@ window.addEventListener("keyup", function(e){
         <span class="langes">Apreta la tecla que quieres usar para el archivo</span>
     </div>
     <div id="archiveSelection">
-        <span class="langes">Please select a File</span><span class="langes">Elige el archivo</span>
+      <div>
+          <label><span class="langen" title="Full path to directory containing the files. Example: /home/me/musica/effectos/">path of directory</span><span class="langes" title="donde esta la carpeta de tus archivos. ejemplo: /home/me/musica/efectos/">ruta de carpeta</span></label><br>
+          <input type="text" id="basepath"><br>
+      </div>
+        <span class="langen">Please select a File</span><span class="langes">Elige el archivo</span>
         <input type="file" id="upload">
     </div>
 </div>
@@ -504,59 +599,127 @@ window.addEventListener("keyup", function(e){
 <div id="config">
     <h1><span class="langen">Configuration</span><span class="langes">Configuración</span></h1>
     <div>
-        <label><span class="langen">Full path to directory containing the files</span><span class="langes"> donde esta la carpeta de tus archivos </span></label>
-        <input type="text" id="basepath"><br>
-        <span><span class="langes">Example</span> <span class="langes">ejemplo</span>: /home/me/musica/efectos/</span>
+      <select id="languageSelector" onchange='document.body.classList.remove("langes");document.body.classList.remove("langen");document.body.classList.add(this.value);'>
+        <option value="langes">es</option>
+        <option value="langen">en</option>
+      </select>
+      <button onclick="document.body.classList.toggle('night')">
+        <span class="langen">night</span>
+        <span class="langes">noche</span>
+      </button>
     </div>
     <div>
-        <label><span class="langen">what to do on second click if audio of key is still playing </span> <span class="langes">que hace al segundo click si el audio de la tecla esta andando todavia</span></label>
+        <h3>
+          <span class="langen" title="what to do on second click if audio of key is still playing">2nd click</span>
+          <span class="langes" title="que hace al segundo click si el audio de la tecla esta andando todavia">segundo click</span>
+        </h3>
         <select id="secondClickChoice">
-           <option value="stop" selected><span class="langen">Stop</span><span class="langes">Para</span></option>
-           <option value="restart"><span class="langen">Restart</span> <span class="langes">reinicia</span></option>
-           <option value="fadeout"><span class="langen">Fadeout</span> <span class="langes">Para bajando</span></option>
+           <option value="stop" selected>Stop / Para</option>
+           <option value="restart">Restart / reinicia</span></option>
+           <option value="fadeout">Fadeout</option>
         </select>
     </div>
     <div>
-      <h3>Fader</h3>
-      <div><label><span class="langen">Time in ms</span> <span class="langes">tiempo en milisegundos</span></label><input id="configFaderTime" type="text" onkeyup="raBoms.fader.fadeouttime = this.value;"></div>
-      <div><label><span class="langen">multiplicator </span> <span class="langes">multiplicador</span></label><input id="configFaderMultiplicator" type="text" onkeyup="raBoms.fader.multiplicator = this.value;"></div>
-      <div><label><span class="langes">steps </span> <span class="langes">pasos</span></label><input id="configFaderSteps" type="text" onkeyup="raBoms.fader.steps = this.value;"></div>
+      <h3>
+        Fading
+      </h3>
+      <div>
+        <h4>Fade Out Time</h4>
+        <label>
+          <span class="langen">Time in ms</span>
+          <span class="langes">tiempo</span>
+          <input id="configFaderTime" type="text" onkeyup="raBoms.fader.fadeouttime = this.value;document.getElementById('configFaderTimeRange').value=this.value;">
+          <span>ms</span>
+        </label>
+        <br>
+        <input id="configFaderTimeRange" type="range" oninput="raBoms.fader.fadeouttime = this.value; document.getElementById('configFaderTime').value=this.value;" value="2000" min="1000" max="30000">
+      </div>
+
+      <div>
+        <label><span class="langen">multiplicator </span> <span class="langes">multiplicador</span></label>
+        <br>
+        <input id="configFaderMultiplicator" type="range" oninput="raBoms.fader.multiplicator = this.value/10;" min="1" max="10" value="7">
+      </div>
+      <div>
+        <label>
+          <span id="configFaderStepsNr">10</span>
+          <span class="langen"> steps</span>
+          <span class="langes"> pasos</span>
+        </label>
+        <br>
+        <input id="configFaderSteps" type="range" oninput="raBoms.fader.steps = this.value; document.getElementById('configFaderStepsNr').innerText=this.value" min="3" max="30">
+      </div>
+      <div>
+        <h4>Fade In Time</h4>
+        <label>
+          <span class="langen">Time in ms</span>
+          <span class="langes">tiempo</span>
+          <input id="configFadeInTime" type="text" onkeyup="raBoms.fader.fadeintime = this.value;document.getElementById('configFadeInTimeRange').value=this.value;" value="2000">
+          <span>ms</span>
+        </label>
+        <br>
+        <input id="configFadeInTimeRange" type="range" oninput="raBoms.fader.fadeintime = this.value; document.getElementById('configFadeInTime').value=this.value;" value="2000" min="1000" max="30000">
+      </div>
+
     </div>
     <div>
-        <div id="FileSaverDownload">
-        <span class="langen">To Save your Config to Disc you have to download FileSaver.js to the same directory this file is within</span>
-        <span class="langes">Para guardar tu configuración al disco tienes que instalar FileSaver.js a la misma carpeta donde esta este pagina guardado.</span>
-        <a href="http://purl.eligrey.com/github/FileSaver.js">Download Filesaver.js</a> |
-        </div>
-        <div><span class="langen">To Save directly to your Disc we use the Filesaver.js library:</span><span class="langes">Para guardar usamos la libreria FileSaver.js. Licencia:</span><br>
-            <a href="https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md">License</a>
-        </div>
+      <h3>
+        <span class="langen">Mute-To-Speak</span>
+        <span class="langes">Volume bajo x hablar</span>
+      </h3>
+      <input id="configMuteToSpeakRange" type="range" oninput="raBoms.muteToSpeakVolume=this.value/100" min="1" max="100" value="30">
     </div>
+
+
 
 </div>
 
-<div id="helpdialog">
-<h1><span class="langen">How it works</span> <span class="langes"> Como usar</span></h1>
-<div class="langen">
-1. Configure the Base-Directory, the full path to the directory where your audiofiles are stored within<br>
-2. Click on Add new File, a Dialog pops up<br>
-3. When Dialog is up press Key you want to use<br>
-4. After that choose File from your Filesystem to play on this Key<br>
-5. If you want you can alter the Base-Volume with the Slider on the Right<br>
-====> Just press your Button and it will play back the sound<br>
-To Cancel all ongoing sounds just press "Escape"<br>
-To Activate "Fade Out" for all press "Enter"<br>
-With ArrowUp/ArrowDown you can alter current going Track Volumes<br>
-</div><div class="langes">
-1. Configura la carpeta base de tus archivos. Debe tener la Ruta completa a la carpeta donde estan los audios que quieres usar. Si hay más que una carpeta - primero añada todos de una carpeta, cambia la carpeta base y despues sigues con los demás<br>
-2. Apreta el Buton "Añadir nuevo archivo". un Dialogo aparece.<br>
-3. Si el Dialogo esta visible apreta la tecla que quieres usar para el sonido.<br>
-4. Despues elige el archivo que quieres usar (apreta el buton que aparece)<br>
-5. Si quieres puedes cambiar el volumen con el slider. <br>
-=====> Apreta la tecla y se tira el sonido<br>
-Si quieres quitar puedes apretar "Escape" y termina todo<br>
-Si quieres quitar lento a todo (fade-out) apreta "Enter"<br>
-Con Tecla Arriba/Abajo se controla el volumen directo de todos audios andando al momento<br>
+<div id="helpdialog" class="show">
+  <h1>
+    <span class="langen">How it works</span>
+    <span class="langes"> Como usar</span>
+    <button class="closebutton" onclick='document.getElementById("helpdialog").classList.remove("show")'>
+      <span class="langen">close</span>
+      <span class="langes">cerrar</span>
+    </button>
+    </h1>
+  <div>
+    <div class="langen">
+    1. Configure the Base-Directory, the full path to the directory where your audiofiles are stored within<br>
+    2. Click on Add new File, a Dialog pops up<br>
+    3. When Dialog is up press Key you want to use<br>
+    4. After that choose File from your Filesystem to play on this Key<br>
+    5. If you want you can alter the Base-Volume with the Slider on the Right<br>
+    ====> Just press your Button and it will play back the sound<br>
+    To Cancel all ongoing sounds just press "Escape"<br>
+    To Activate "Fade Out" for all press "Enter"<br>
+    With ArrowUp/ArrowDown you can alter current going Track Volumes<br>
+    </div><div class="langes">
+      <p>
+    1. Apreta el Buton "Añadir nuevo archivo". un Dialogo aparece.<br>
+    2. Si el Dialogo esta visible apreta la tecla que quieres usar para el sonido.<br>
+    3. Configura la carpeta base de tus archivos. Debe tener la Ruta completa a la carpeta donde esta el audio que quieres usar. Si hay más que una carpeta - primero añada todos de una carpeta, cambia la carpeta base y despues sigues con los demás<br>
+    4. Despues elige el archivo que quieres usar (apreta el buton que aparece)<br>
+    5. Si quieres puedes cambiar el volumen con el slider. <br>
+    <b><i>=====> Apreta la tecla y se tira el sonido</i></b><br>
+    </p>
+    <h2>Más Teclas / Teclas fijas</h2>
+    Si quieres quitar puedes apretar <b>"Escape"</b> y termina todo<br>
+    Si quieres quitar lento a todo (fade-out) apreta <b>"Enter"</b><br>
+    Con Tecla <b>Arriba/Abajo</b> se controla el volumen directo de todos audios andando al momento<br>
+    Durante que se presiona <b>Espacio</b> se baja el Volumen de todo andando al nivel determinado en la configuración<br>
+    </div>
+  </div>
+  <div>
+      <div id="FileSaverDownload">
+        <span class="langen">To Save your Config to Disc you have to download FileSaver.js to the same directory this file is within</span>
+        <span class="langes">Para guardar tu configuración al disco tienes que instalar FileSaver.js a la misma carpeta donde esta este pagina guardado.</span>
+        <a href="http://purl.eligrey.com/github/FileSaver.js">Download Filesaver.js</a> |
+      </div>
+      <div><span class="langen">To Save directly to your Disc we use the Filesaver.js library:</span><span class="langes">Para guardar usamos la libreria FileSaver.js. Licencia:</span><br>
+          <a href="https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md">License</a>
+      </div>
+    </div>
 </div>
 </div>
 </body>
