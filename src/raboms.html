@@ -95,7 +95,7 @@ raBoms = {
                 rpbbutton.style.transition = "all " +dur+ "s linear";
                 rpbbutton.classList.add("playing");
                 this.showRemainingDuration(button);
-                if(this.buttons[button].fadeInChecked ==="on")this.fadeinButton(button);
+                if(this.buttons[button].fadeInChecked)this.fadeinButton(button);
             }else{
                 var choice = document.getElementById("secondClickChoice").value;
                 if(choice==="stop"){
@@ -494,6 +494,7 @@ raBoms = {
 
     },
     fadein:function(key,stepArray,interval){
+      console.log("fade-in: "+key);
       var button = raBoms.buttons[key];
       if(!button)return;
       var steparray = stepArray;
