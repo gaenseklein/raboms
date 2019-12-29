@@ -6,8 +6,10 @@
 <title>raBoms</title>
 <link rel="stylesheet" href="raboms.css">
 <script src="FileSaver.js"></script>
+<script src="fileManager.js"></script>
+<script src="../database.js"></script>
 <script>
-version = 0.4;
+version = 0.5;
 
 function pBB(button, audiosource, bpath){
     this.button = button;
@@ -92,6 +94,7 @@ raBoms = {
                 var rpbbutton = document.getElementById("rpbbid"+button);
                 rpbbutton.style.transition = "all " +dur+ "s linear";
                 rpbbutton.classList.add("playing");
+                this.showRemainingDuration(button);
                 if(this.buttons[button].fadeInChecked ==="on")this.fadeinButton(button);
             }else{
                 var choice = document.getElementById("secondClickChoice").value;
@@ -104,8 +107,9 @@ raBoms = {
                     this.fadeoutButton(button);
                 }
             }
+        }else if(!this.active){
+          if(this.temporaryButton!=null)this.setNewButtonKey(button);
         }
-        if(this.temporaryButton!=null)this.setNewButtonKey(button);
     },
     stopButton:function(button){
         if(this.buttons[button]){
@@ -138,7 +142,7 @@ raBoms = {
       }
     },
     stopAll:function(){
-        for(var x=0;x<this.playingbuttons.length;x++)this.stopButton(this.playingbuttons[x]);
+        for(var x=this.playingbuttons.length-1;x>=0;x--)this.stopButton(this.playingbuttons[x]);
         this.playingbuttons = new Array();
     },
     checkForButton:function(button){
@@ -162,17 +166,28 @@ raBoms = {
 
     },
     setNewButtonKey:function(button){
+      var nbd = document.getElementById("newButtonDialog");
+        if(fileManager && fileManager.fs && fileManager.fs.length>0){
+          var dialog = document.getElementById("fileManagerDialog");
+          if(dialog.classList.contains("show"))return;
+          dialog.classList.add("show");
+          this.temporaryButton.key = button;
+          document.getElementById("fileManagerButtonKey").innerText=button;
+          fileManager.lsPath();
+          nbd.classList.remove("show");
+          return;
+        }
         this.temporaryButton.key = button;
         var nbk = document.getElementById("newButtonKey");
         nbk.innerText = button;
-        var nbd = document.getElementById("newButtonDialog").classList.remove("waiting");
+        nbd.classList.remove("waiting");
 
     },
-    finishFile:function(filename){
+    finishFile:function(filename,basepath){
         this.temporaryButton.audiosource = filename;
         var nbd = document.getElementById("newButtonDialog");
         nbd.classList.remove("show");
-        this.addButton(this.temporaryButton.key,filename);
+        this.addButton(this.temporaryButton.key,filename,basepath);
         this.active = true;
         this.temporaryButton = null;
         this.showFileIndex();
@@ -214,10 +229,26 @@ raBoms = {
     showFileIndex:function(){
         var fidiv = document.getElementById("fileIndex");
         fidiv.innerHTML = "";
-        Object.keys(this.buttons).forEach(function(key,index) {
+        var keys = Object.keys(this.buttons);
+        var htmlstring = "";
+        if(this.groups){
+          for(var g=this.groups.length-1;g>=0;g--){
+            for(var gk=this.groups[g].keys.length-1;gk>=0;gk--){
+              var agk = this.groups[g].keys[gk];
+              if(keys.indexOf(agk)>-1){
+                keys.splice(keys.indexOf(agk),1);
+                keys.unshift(agk);
+              }
+            }
+          }
+        }
+        for(var keyx=0;keyx<keys.length;keyx++){
+            key = keys[keyx];
+        //Object.keys(this.buttons).forEach(function(key,index) {
             // key: the name of the object key
             // index: the ordinal position of the key within the object
-
+            //if(fidiv && x===0)alert("estoy aldentro");
+            //if(!fidiv && x===0)alert("estoy afuera");
             var audiosource = raBoms.buttons[key].audiosource;
             var audioname = raBoms.buttons[key].audioname;
             var volume = raBoms.buttons[key].audio.volume * 100;
@@ -245,21 +276,31 @@ raBoms = {
             if(fadein)fadein = " checked";else fadein="";
 
             var fidiv = document.getElementById("fileIndex");
-            var htmlstring = fidiv.innerHTML +
-'<div class="rpbbButton" id="rpbbid'+key+'">'+
-'<button class="buttonKey" onclick="raBoms.playButton(\''+key+'\')" title="'+key+'">'+key+'</button>'+
-'<div class="buttonSource" title="'+audiosource+'">'+audioname+'</div>'+
-'<div class="buttonDuration">'+duration+'</div>'+
-'<div class="volume"><input type="range" id="rpbbvolume'+key+'" oninput="raBoms.setVolume(\''+key+'\',this.value)" value="'+volume+'" min="1" max="100"></div>'+
-'<div class="checkbox">'+
-'<label>loop</label><input type="checkbox" onclick="raBoms.setLoop(\''+key+'\',this.value)"'+loop+'>'+
-'<label>fadein</label><input type="checkbox" onclick="raBoms.setFadeIn(\''+key+'\',this.value)"'+fadein+'>'+
-'</div>'+
-devices;
+            var group = this.groupOfKey(key);
+            var groupstyle = "";
+            var groupname = "";
+            if(group){
+              groupstyle = 'style="border: 5px solid '+group.color+'"';
+              groupname = '<div class="groupname" style="background:'+group.color+'">'+group.name+'</div>';
+            }
+            htmlstring = htmlstring +
+'<div class="rpbbButton" id="rpbbid'+key+'" '+groupstyle+'>'+
+  groupname+
+  '<button class="buttonKey" onclick="raBoms.playButton(\''+key+'\')" title="'+key+'">'+key+'</button>'+
+  '<div class="buttonSource" title="'+audiosource+'">'+audioname+'</div>'+
+  '<div class="buttonDuration">'+duration+'</div>'+
+  '<div class="volume"><input type="range" id="rpbbvolume'+key+'" oninput="raBoms.setVolume(\''+key+'\',this.value)" value="'+volume+'" min="1" max="100"></div>'+
+  '<div class="checkbox">'+
+    '<label>loop</label><input type="checkbox" onclick="raBoms.setLoop(\''+key+'\',this.checked)"'+loop+'>'+
+    '<label>fadein</label><input type="checkbox" onclick="raBoms.setFadeIn(\''+key+'\',this.checked)"'+fadein+'>'+
+  '</div>'+
+  devices+
+'</div>';
 //'<button class="buttondelete" onclick="raBoms.removeButton(\''+key+'\')" title="delete/borrar">X</button></div>';
-            fidiv.innerHTML = htmlstring;
-        });
-        if(Object.keys(this.buttons).length>5)fidiv.classList.add("bgrid");
+            //if(keyx===0)htmlstring = '<h3 class="grouptitle">group</h3><div class="group">'+htmlstring;
+            //if(keyx===5)htmlstring +="</div>";
+        }; //);
+        fidiv.innerHTML = htmlstring;
         this.saveToCache();
     },
     saveToCache:function(){
@@ -267,8 +308,8 @@ devices;
         var saveConfig = JSON.stringify({
           fader:this.fader,
           secondClick:document.getElementById("secondClickChoice").value,
-          muteToSpeakVolume:this.muteToSpeakVolume
-
+          muteToSpeakVolume:this.muteToSpeakVolume,
+          groups:this.groups
         });
         var basepath = document.getElementById("basepath").value;
         window.localStorage.setItem("radioPBBbasepath",basepath);
@@ -285,7 +326,6 @@ devices;
             for(var x=0;x<keys.length;x++){
                 var actb = cachedbuttons[keys[x]];
                 this.addButton(actb.button, actb.audioname, actb.basepath);
-
             }
         }
         var configstring = window.localStorage.getItem("radioPBBconfig");
@@ -302,6 +342,10 @@ devices;
           if(configobj.muteToSpeakVolume){
             this.muteToSpeakVolume = configobj.muteToSpeakVolume;
             document.getElementById("configMuteToSpeakRange").value = configobj.muteToSpeakVolume*100;
+          }
+          if(configobj.groups){
+            this.groups=configobj.groups;
+            this.showGroups();
           }
         }
         this.showFileIndex();
@@ -323,24 +367,33 @@ devices;
         }
         if(saveObject.standardVolume)this.standardVolume=saveObject.standardVolume;
         if(saveObject.secondClick)document.getElementById("secondClickChoice").value=saveObject.secondClick;
+        if(saveObject.muteToSpeakVolume){
+          this.muteToSpeakVolume = saveObject.muteToSpeakVolume;
+        }
+        document.getElementById("configMuteToSpeakRange").value = saveObject.muteToSpeakVolume*100;
+        if(saveObject.groups){
+          this.groups=saveObject.groups;
+          this.showGroups();
+        }
         this.showFileIndex();
     },
     init:function(){
         this.standardVolume = 0.7;
         this.muteToSpeakVolume = 0.3;
+        this.idioma = document.getElementById("languageSelector");
         this.fader = {
           multiplicator: 0.7,
           fadeouttime:2000,
           steps:10,
           fadeintime:5000
         }
+        this.groups = new Array();
         this.loadFromCache();
         document.getElementById("configFaderTime").value = this.fader.fadeouttime;
         document.getElementById("configFaderMultiplicator").value = this.fader.multiplicator*10;
         document.getElementById("configFaderSteps").value = this.fader.steps;
         if(typeof saveAs === "function"){
-            var savetoDiskButton = document.createElement("Button");
-            savetoDiskButton.innerHTML = "<span class='langen'>Save<br>Project</span><span class='langes'>Guarda<br>projecto</span>";
+            var savetoDiskButton = document.getElementById("saveButton");
             savetoDiskButton.onclick = function(){
                 var saveObject = {};
                 saveObject.basepath = document.getElementById("basepath").value;
@@ -348,6 +401,8 @@ devices;
                 saveObject.standardVolume = raBoms.standardVolume;
                 saveObject.fader = raBoms.fader;
                 saveObject.secondClick = document.getElementById("secondClickChoice").value;
+                saveObject.muteToSpeakVolume=raBoms.muteToSpeakVolume;
+                saveObject.groups=raBoms.groups;
                 var saveString = JSON.stringify(saveObject);
                 var exportfilename = "raBomsConfig.txt";
                 let blob = new Blob([saveString],{type:"text/plain;charset=utf-8"});
@@ -356,8 +411,7 @@ devices;
             document.getElementById("FileSaverDownload").classList.add("hidden");
             var buttonarea = document.getElementById("buttonarea");
             buttonarea.appendChild(savetoDiskButton);
-            var loadFromDiscButton = document.createElement("button");
-            loadFromDiscButton.innerHTML = "<span class='langen'>Load<br>Project</span><span class='langes'>Abre<br>projecto</span>";
+            var loadFromDiscButton = document.getElementById("loadButton");
             loadFromDiscButton.onclick = function(){
                 var lfd = document.getElementById("lfdInput");
                 if(lfd){
@@ -504,11 +558,106 @@ devices;
     },
     unmuteToSpeak:function(){
       document.getElementById("muteToSpeakButton").classList.remove("active")
+      if(!this.mutedButtons)return;
       for(var x=0;x<this.mutedButtons.length;x++){
         var actb = this.buttons[this.mutedButtons[x]];
         actb.audio.volume = actb.volume;
       }
-    }
+    },
+    addNewGroup:function(){
+      var ptext = "please enter new group name";
+      if(this.idioma.value === "langes" )ptext="nombre tu nuevo grupo";
+      var groupname = prompt(ptext);
+      if(!this.groups)this.groups = new Array();
+      var standardcolors = ["#49ae49","#cd251b","#5768ed","#aaaa00","#00aaaa","#aa00aa"];
+      var actcolor = standardcolors[this.groups.length];
+      if(!actcolor)actcolor = "#00ff00";
+      this.groups.push({
+        name:groupname,
+        id:this.groups.length,
+        color:actcolor,
+        keys:[]
+      });
+      this.showGroups();
+    },
+    removeGroup:function(id){
+      if(this.groups[id])this.groups.splice(id,1);
+      this.showGroups();
+      this.showFileIndex();
+    },
+    moveGroup:function(direction,id){
+      if(direction==="up" && id>0){
+        this.groups[id] = this.groups.splice(id-1, 1, this.groups[id])[0];
+      }else if(direction==="down" && id<this.groups.length-1){
+        let b = id*1+1;
+        this.groups[b] = this.groups.splice(id, 1, this.groups[b])[0];
+      }
+      this.showGroups();
+      this.showFileIndex();
+    },
+    showGroups:function(){
+      var groupdiv = document.getElementById("grouplist");
+      var htmlstring = "";
+      var keyTitle = "Put here Keys inside you want to use in a group. The order will be reflected inside the group";
+      if(document.getElementById("languageSelector").value="langes")keyTitle="Escribe las teclas que quieres colocar a este grupo. El orden se refleja en el orden aldentro del escritorio.";
+      for(var x=0;x<this.groups.length;x++){
+        var group = this.groups[x];
+        htmlstring = htmlstring +
+        '<div class="grouplistelement">'+
+          '<button value="'+x+'" class="closebutton" onclick="raBoms.removeGroup(this.value)">X</button>'+
+          '<h4>'+group.name+'</h4>'+
+          '<input type="color" value="'+group.color+'" oninput="raBoms.changeGroupColor('+x+',this.value)">'+
+          '<input type="text" title="'+keyTitle+'" class="groupKeys" name="'+x+'" onkeyup="raBoms.changeGroupKeys(this.name,this.value)" value="'+group.keys.join("")+'">'+
+          '<div class="ctlbuttons">'+
+            '<button value="'+x+'" onclick="raBoms.moveGroup(\'up\',this.value)">⏫</button>'+
+            '<button value="'+x+'" onclick="raBoms.moveGroup(\'down\',this.value)">⏬</button>'+
+          '</div>'+
+        '</div>';
+      }
+      groupdiv.innerHTML = htmlstring;
+    },
+    changeGroupKeys:function(groupid, keystring){
+      this.groups[groupid].keystring = keystring;
+      var keys = new Array();
+      for(var x=0;x<keystring.length;x++)keys.push(keystring.charAt(x));
+      this.groups[groupid].keys=keys;
+      this.showFileIndex();
+    },
+    changeGroupColor:function(groupid,color){
+      this.groups[groupid].color = color;
+      this.showFileIndex();
+    },
+    groupOfKey:function(key){
+      for(var x=0;x<this.groups.length;x++){
+        if(this.groups[x].keys.indexOf(key)>-1){
+          return this.groups[x];
+        }
+      }
+    },
+    showRemainingDuration:function(key){
+        var actkey = key;
+        var actdurationdiv = document.getElementById("rpbbid"+actkey).getElementsByClassName("buttonDuration")[0];
+        var actduration = this.buttons[key].duration;
+        if(this.playingbuttons.indexOf(key)===-1){
+            var min = Math.floor(actduration/60);
+            var sec = Math.floor((actduration-(min*60))*10)/10;
+            actdurationdiv.innerText = min + " min "+sec+" s";
+          return;
+        }
+        //console.log(actdurationdiv);
+        var acttime = this.buttons[key].audio.currentTime;
+        var lefttime = actduration - acttime;
+        var leftseconds = lefttime;
+
+          var minutes = Math.floor(leftseconds / 60);
+          leftseconds = Math.floor((leftseconds - (minutes*60))*10)/10;
+          var missingzero = "";
+          if(leftseconds-Math.floor(leftseconds)===0)missingzero=".0";
+          lefttime = "- "+minutes +" min "+leftseconds + missingzero + " s";
+        actdurationdiv.innerText = lefttime;
+        setTimeout("raBoms.showRemainingDuration('"+key+"')",100);
+    },
+
 
 
 }
@@ -520,7 +669,9 @@ window.addEventListener("keydown",function(e){
   }else if(e.key==="ArrowUp"){
     raBoms.turnUpAll();
     e.preventDefault();
-  }else if(e.key===" "){
+  }else if(e.key===" " && !(e.target.type &&
+    (e.target.type==="text" || e.target.type==="file") &&
+     e.target.tagName==="INPUT")){
     raBoms.muteToSpeak();
   }
 });
@@ -530,9 +681,10 @@ window.addEventListener("keyup", function(e){
       (e.target.type==="text" || e.target.type==="file") &&
        e.target.tagName==="INPUT")return;
     if(e.key==="Escape"){
-        raBoms.stopAll();
+        if(raBoms.active)raBoms.stopAll();
         var allshown = document.getElementsByClassName("show");
         while(allshown.length>0)allshown[0].classList.remove("show");
+        if(!raBoms.active)raBoms.active = true;
     }else if(e.key==="Enter"){
         raBoms.fadeoutAll();
     }else if(e.key===" "){
@@ -548,23 +700,41 @@ window.addEventListener("keyup", function(e){
 <body onload="raBoms.init()" class="langes">
 <div id="rabomswrapper">
 <div id="buttonarea">
-  <h1 id="rabomstitle">raBoms<br>V 0.4</h1>
-    <button id="newFileButton" onclick="raBoms.createNewButton()"><span class="buttonSymbol">+</span><span class="langen">Add new File</span> <span class="langes">Añadir nuevo archivo</span></button>
+  <h1 id="rabomstitle">raBoms<br>V 0.5</h1>
+    <button id="newFileButton" onclick="raBoms.createNewButton()">
+      <span class="buttonSymbol">+ </span>
+      <span class="langen">Add new File</span>
+      <span class="langes">Añadir nuevo archivo</span>
+    </button>
     <button id="stopAllButton" onclick="raBoms.stopAll()">
+      <span class="buttonSymbol">⏹</span>
       <span class="langen">Stop all</span>
-      <span class="langes">Para todo</span>
+      <span class="langes">Parar todo</span>
       <span class="shortcutDisplay">(Escape)</span>
     </button>
-    <button id="stopAllButton" onclick="raBoms.fadeoutAll()">
+    <button id="fadeAllButton" onclick="raBoms.fadeoutAll()">
+      <span class="buttonSymbol">◣</span>
       <span class="langen">Fadeout all</span>
       <span class="langes">Fadeout todo</span>
       <span class="shortcutDisplay">(Enter)</span>
     </button>
     <button id="muteToSpeakButton" onmousedown="raBoms.muteToSpeak()" onmouseup="raBoms.unmuteToSpeak()">
+      <span class="buttonSymbol">🗣🎤</span>
       <span class="langen">Mute to Speak</span>
-      <span class="langes">Baja todo para hablar</span>
+      <span class="langes">Bajar todo</span>
       <span class="shortcutDisplay">(<span class="langen">Space</span><span class="langes">Espacio</span>)</span>
     </button>
+    <button id="saveButton">
+      <span class='buttonSymbol'>🖫</span>
+      <span class='langen'>Save<br>Project</span>
+      <span class='langes'>Guardar<br>projecto</span>
+    </button>
+    <button id="loadButton">
+      <span class='buttonSymbol'>🗁</span>
+      <span class='langen'>Load<br>Project</span>
+      <span class='langes'>Abrir<br>projecto</span>
+    </button>
+
 </div>
 <div id="fileIndex" class="bgrid">
 
@@ -669,6 +839,18 @@ window.addEventListener("keyup", function(e){
       </h3>
       <input id="configMuteToSpeakRange" type="range" oninput="raBoms.muteToSpeakVolume=this.value/100" min="1" max="100" value="30">
     </div>
+    <div>
+      <h3>
+        <span class="langen">Groups</span>
+        <span class="langes">grupos</span>
+      </h3>
+      <button onclick="raBoms.addNewGroup()">
+        <span class="langen">add new Group</span>
+        <span class="langes">nuevo grupo</span>
+      </button>
+      <div id="grouplist">
+      </div>
+    </div>
 
 
 
@@ -685,15 +867,24 @@ window.addEventListener("keyup", function(e){
     </h1>
   <div>
     <div class="langen">
-    1. Configure the Base-Directory, the full path to the directory where your audiofiles are stored within<br>
-    2. Click on Add new File, a Dialog pops up<br>
-    3. When Dialog is up press Key you want to use<br>
-    4. After that choose File from your Filesystem to play on this Key<br>
-    5. If you want you can alter the Base-Volume with the Slider on the Right<br>
-    ====> Just press your Button and it will play back the sound<br>
-    To Cancel all ongoing sounds just press "Escape"<br>
-    To Activate "Fade Out" for all press "Enter"<br>
-    With ArrowUp/ArrowDown you can alter current going Track Volumes<br>
+      <p>
+        1. Configure the Base-Directory, the full path to the directory where your audiofiles are stored within<br>
+        2. Click on Add new File, a Dialog pops up<br>
+        3. When Dialog is up press Key you want to use<br>
+        4. After that choose File from your Filesystem to play on this Key<br>
+        5. If you want you can alter the Base-Volume with the Slider on the Right<br>
+        ====> Just press your Button and it will play back the sound<br>
+        To Cancel all ongoing sounds just press "Escape"<br>
+        To Activate "Fade Out" for all press "Enter"<br>
+        With ArrowUp/ArrowDown you can alter current going Track Volumes<br>
+      </p>
+      <h1>groups</h1>
+      <p>
+        You can sort your keys in groups to get a better overview.<br>
+        Just add a group, give it a name and enter the Keys in the Textfield of the group you want to have connected with this group.<br>
+        The Order of the Keys is reflected in the Buttonarea.<br>
+        As up to this Version, only simple Keys are supported by groups.
+      </p>
     </div><div class="langes">
       <p>
     1. Apreta el Buton "Añadir nuevo archivo". un Dialogo aparece.<br>
@@ -704,22 +895,36 @@ window.addEventListener("keyup", function(e){
     <b><i>=====> Apreta la tecla y se tira el sonido</i></b><br>
     </p>
     <h2>Más Teclas / Teclas fijas</h2>
-    Si quieres quitar puedes apretar <b>"Escape"</b> y termina todo<br>
-    Si quieres quitar lento a todo (fade-out) apreta <b>"Enter"</b><br>
-    Con Tecla <b>Arriba/Abajo</b> se controla el volumen directo de todos audios andando al momento<br>
-    Durante que se presiona <b>Espacio</b> se baja el Volumen de todo andando al nivel determinado en la configuración<br>
+    <p>Si quieres quitar puedes apretar <b>"Escape"</b> y termina todo<br>
+      Si quieres quitar lento a todo (fade-out) apreta <b>"Enter"</b><br>
+      Con Tecla <b>Arriba/Abajo</b> se controla el volumen directo de todos audios andando al momento<br>
+      Durante que se presiona <b>Espacio</b> se baja el Volumen de todo andando al nivel determinado en la configuración<br>
+    </p>
+    <h2>Grupos</h2>
+    <p>
+      Para tener una sobrevista mejor puedes crear grupos. Elige nombres y colores a tu gusto. <br>
+      Grupos no son para botones, pero para teclas. Añade a cada grupo todos teclas que quieres usar. <br>
+      El orden de las teclas esta reflejado en la area de botones. <br>
+      Si simplemente quieres ordenar tus botones crea un grupo y escribe el orden de tu gusto en este nuevo grupo.<br>
+      Hasta ahora grupos solamente suporten teclas simples, como una letra, y no mas complejos como "Keypad0". Pero eso puede cambiar en el futuro. Si quieren eso avisanme.<br>
+    </p>
     </div>
-  </div>
-  <div>
-      <div id="FileSaverDownload">
+    <div id="FileSaverDownload">
         <span class="langen">To Save your Config to Disc you have to download FileSaver.js to the same directory this file is within</span>
         <span class="langes">Para guardar tu configuración al disco tienes que instalar FileSaver.js a la misma carpeta donde esta este pagina guardado.</span>
         <a href="http://purl.eligrey.com/github/FileSaver.js">Download Filesaver.js</a> |
-      </div>
-      <div><span class="langen">To Save directly to your Disc we use the Filesaver.js library:</span><span class="langes">Para guardar usamos la libreria FileSaver.js. Licencia:</span><br>
-          <a href="https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md">License</a>
-      </div>
     </div>
+    <div><span class="langen">To Save directly to your Disc we use the Filesaver.js library:</span><span class="langes">Para guardar usamos la libreria FileSaver.js. Licencia:</span><br>
+          <a href="https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md">License</a>
+    </div>
+  </div>
+</div>
+<div id="fileManagerDialog">
+  <h1><span class="buttonkey" id="fileManagerButtonKey"></span>
+    <span class="langen">Select your file</span>
+    <span class="langes">Elige tu archivo</span>
+  </h3>
+  <div id="fileManagerLsTarget"></div>
 </div>
 </div>
 </body>

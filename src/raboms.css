@@ -41,6 +41,7 @@ input[type="range"] {
 }
 
 /*buttonarea*/
+#buttonarea{ display:flex;}
 /*general buttons:*/
 #buttonarea button,
 #config button, #config select,
@@ -59,7 +60,7 @@ input[type="range"] {
 	padding:6px 24px;
 	text-decoration:none;
 	text-shadow:0px 1px 0px #7cacde;
-	max-width:20ch
+	max-width:20ch;
 }
 #buttonarea button:hover {
 	background:linear-gradient(to bottom, #468ccf 5%, #63b8ee 100%);
@@ -69,6 +70,19 @@ input[type="range"] {
 	position:relative;
 	top:1px;
 }
+
+span.buttonSymbol {
+    font-size: 3ch;
+    height: 1.2em;
+    margin-top: -0.2em;
+}
+
+#buttonarea button {
+    display: grid;
+    min-height:3em;
+}
+
+
 /*new button dialog*/
 div#newButtonDialog,
 #advancedButtonDialog {
@@ -217,7 +231,7 @@ button {
 
 .bgrid .buttonDevices{
   grid-area:devices;
-  width:10ch;
+  width:100%;
   height:2em;
 }
 
@@ -226,6 +240,7 @@ button {
     width: unset;
   overflow-wrap:break-word;
   margin-left: 1ch;
+  max-height:100%;
 }
 
 .bgrid .buttonDuration {
@@ -320,7 +335,8 @@ div#advancedButtonDialogDeleteButton {
     background-position: top;
 }
 /*helpdialog*/
-div#helpdialog {
+div#helpdialog,
+div#fileManagerDialog {
     position: absolute;
     grid-area: none;
     top: 11vh;
@@ -333,11 +349,13 @@ div#helpdialog {
     overflow: hidden;
     display:none;
 }
-#helpdialog.show{
+#helpdialog.show,
+div#fileManagerDialog.show{
   display:block;
 }
 
 #helpdialog h1,
+#fileManagerDialog h1,
 #newButtonDialog h2 {
     background: lightblue;
     margin: 0 0 1em 0px;
@@ -353,6 +371,104 @@ div#helpdialog {
 }
 #helpdialog .closebutton{
   float:right;
+}
+
+/*filemanager:*/
+.fileManagerLs li button {
+    background: #d2eff6;
+    border: none;
+    border-radius: unset;
+    font-size: large;
+}
+
+.fileManagerLs li {
+    list-style: none;
+}
+
+/*
+.fileManagerLs {
+    display: grid;
+    grid-template-areas:
+        "path path"
+        "dir files";
+    grid-template-rows: 1fr;
+}
+
+.fileManagerLsDir {grid-area:dir;}
+.fileManagerFiles{grid-area:files;}
+.fileManagerLsPath{grid-area:path;}
+*/
+.fileManagerLsWrapper {
+    overflow-y: scroll;
+    height: 70vh;
+}
+div#fileManagerDialog{
+  height:85vh;
+  top:7vh;
+  width:80vw;
+  left:10vw;
+}
+span#fileManagerButtonKey {
+    float: left;
+    margin-left: 2ch;
+    background: green;
+    width: 7ch;
+    border-radius: 1ch;
+}
+
+#fileManagerDialog h3 {
+    grid-area: title;
+}
+
+div#fileManagerLsTarget {}
+
+.fileManagerLsPath .roots{
+  display:inline-grid;
+  grid-template-areas:"active";
+}
+.rootButton.active{
+  grid-area:active;
+}
+
+
+/*group*/
+
+.grouplistelement {
+    display: grid;
+    grid-template-columns: 2ch 10ch auto;
+    grid-template-areas:"quit title color" "keys keys buttons";
+    border: 1px dashed;
+    border-radius: 0.5ch;
+}
+
+.grouplistelement h4 {
+    margin: 0;
+    text-align: center;
+    grid-area:title;
+}
+
+.grouplistelement input[type="color"] {
+    width: 3ch;
+    justify-self: end;
+    border-radius: 0.5ch;
+    padding: 0;
+    grid-area:color;
+}
+
+.grouplistelement .groupKeys{
+  grid-area:keys;
+  max-height:1em;
+}
+.grouplistelement .ctlbuttons{grid-area:buttons;}
+.grouplistelement .closebutton{grid-area:quit;}
+
+#config .grouplistelement button {
+    width: 3ch;
+    padding: 0;
+}
+.grouplistelement .closebutton {
+    margin-left: -0.3ch;
+    margin-top: -0.1em;
 }
 
 /*sort in later:*/
@@ -386,7 +502,8 @@ input#configFaderTime, input#configFadeInTime {
 #config{
   padding-left: 10px;
   overflow-y: auto;
-  max-height:90%;
+  max-height:100%;
+  resize: horizontal;
 }
 #config #languageSelector,
 #config select{
@@ -398,7 +515,11 @@ div#fileIndex {
     box-shadow: inset 3px 3px 7px -5px black;
     border-radius: 20px 0px 0px 0px;
     background: #e4e6e7;
+    overflow-y:auto;
 }
 #muteToSpeakButton.active{
   background:#c98283;
+}
+#fileManagerDialog{
+  display:none;
 }
