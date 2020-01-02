@@ -9,7 +9,7 @@
 <script src="fileManager.js"></script>
 <script src="../database.js"></script>
 <script>
-version = 0.5;
+version = 0.6;
 
 function pBB(button, audiosource, bpath){
     this.button = button;
@@ -556,6 +556,7 @@ raBoms = {
         this.mutedButtons.push(this.playingbuttons[x]);
         this.buttons[this.playingbuttons[x]].audio.volume = this.muteToSpeakVolume;
       }
+      if(this.microphone.automute)this.microphone.unmute();
     },
     unmuteToSpeak:function(){
       document.getElementById("muteToSpeakButton").classList.remove("active")
@@ -564,6 +565,7 @@ raBoms = {
         var actb = this.buttons[this.mutedButtons[x]];
         actb.audio.volume = actb.volume;
       }
+      if(this.microphone.automute)this.microphone.mute();
     },
     addNewGroup:function(){
       var ptext = "please enter new group name";
@@ -658,10 +660,64 @@ raBoms = {
         actdurationdiv.innerText = lefttime;
         setTimeout("raBoms.showRemainingDuration('"+key+"')",100);
     },
-
-
-
 }
+
+raBoms.microphone = {
+  audiocontext:null,
+  source:null,
+  gainNode:null,
+  automute:true,
+  volume:1,
+  init:function(killswitch){
+    if(killswitch===false){
+      this.kill();
+      return;
+    }
+    this.audiocontext = new AudioContext();
+    this.gainNode = this.audiocontext.createGain();
+    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+      mic = raBoms.microphone;
+      mic.source=mic.audiocontext.createMediaStreamSource(stream);
+      mic.source.connect(mic.gainNode);
+      mic.gainNode.connect(mic.audiocontext.destination);
+      setTimeout("raBoms.microphone.setAutomute(raBoms.microphone.automute)",10);
+    });
+    document.getElementById("configMicro").classList.add("show");
+  },
+  setVolume:function(volume){
+    if(!this.gainNode)return;
+    this.volume=volume;
+    if(!this.automute){
+      this.gainNode.gain.value = volume;
+    }
+  },
+  setAutomute:function(value){
+    this.automute=value;
+    if(this.automute){
+      this.gainNode.gain.value=0;
+    }else{
+      this.gainNode.gain.value=this.volume;
+    }
+  },
+  mute: function(){
+    if(!this.gainNode)return;
+    this.gainNode.gain.value=0;
+  },
+  unmute:function(){
+    if(!this.gainNode)return;
+    this.gainNode.gain.value=this.volume;
+  },
+  kill:function(){
+    if(!this.source)return;
+    var tracks = this.source.mediaStream.getAudioTracks();
+    for(var x=0;x<tracks.length;x++)tracks[x].stop();
+    this.audiocontext=null;
+    this.source=null;
+    this.gainNode=null;
+    document.getElementById("configMicro").classList.remove("show");
+  }
+};
+
 
 window.addEventListener("keydown",function(e){
   if(e.key==="ArrowDown"){
@@ -842,8 +898,31 @@ window.addEventListener("keyup", function(e){
     </div>
     <div>
       <h3>
+        <span class="langen">Microphone</span>
+        <span class="langes">Microfono</span>
+      </h3>
+      <div class="checkboxdiv">
+        <input type="checkbox" oninput="raBoms.microphone.init(this.checked)">
+        <label>
+          <span class="langen" title="Activates the Microphone (you have to accept the query from the browser)">Activate Microphone</span>
+          <span class="langes" title="Activar el microphono">Activar microfono</span>
+        </label>
+      </div>
+      <div id="configMicro">
+        <div class="checkboxdiv">
+          <input type="checkbox" onchange="raBoms.microphone.setAutomute(this.checked)" checked>
+          <label>
+            <span class="langen" title="only activate microphone on pressing the space bar">Automute Microphone</span>
+            <span class="langes" title="Solo activa microfono cuando la tecla Espacio esta activo">Automute microfono</span>
+          </label>
+        </div>
+        <input id="configMicrophoneVolume" type="range" oninput="raBoms.microphone.setVolume(this.value/100)" min="0" max="300" value="100">
+      </div>
+    </div>
+    <div>
+      <h3>
         <span class="langen">Groups</span>
-        <span class="langes">grupos</span>
+        <span class="langes" title="Ordena tus botones por grupos (cortina, musica, efecto, entrevista...)">grupos</span>
       </h3>
       <button onclick="raBoms.addNewGroup()">
         <span class="langen">add new Group</span>
