@@ -471,6 +471,16 @@ div#fileManagerLsTarget {}
     margin-top: -0.1em;
 }
 
+/*microphone */
+
+#configMicro{
+  display:none;
+}
+
+#configMicro.show{
+  display:unset;
+}
+
 /*sort in later:*/
 div#rabomswrapper {
     background: #c9e2f0;

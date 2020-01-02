@@ -158,7 +158,7 @@ var fileManager = {
     document.getElementById("fileManagerDialog").classList.add("show");
   },
   fileChosen:function(fullpath){
-    let filename = fullpath.substring(fullpath.lastIndexOf("/"));
+    let filename = fullpath.substring(fullpath.lastIndexOf("/")+1);
     let basepath = fullpath.substring(0,fullpath.lastIndexOf("/")+1);
     raBoms.finishFile(filename,basepath);
     document.getElementById("fileManagerDialog").classList.remove("show");
