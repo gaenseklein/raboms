@@ -45,7 +45,7 @@ input[type="range"] {
 /*general buttons:*/
 #buttonarea button,
 #config button, #config select,
-.closebutton {
+.closebutton, .smallbutton {
 	box-shadow:inset 0px 1px 0px 0px #bee2f9;
 	background:linear-gradient(to bottom, #63b8ee 5%, #468ccf 100%);
 	background-color:#63b8ee;
@@ -62,7 +62,17 @@ input[type="range"] {
 	text-shadow:0px 1px 0px #7cacde;
 	max-width:20ch;
 }
-#buttonarea button:hover {
+
+.smallbutton{
+  padding:0;
+  height:1.5em;
+}
+
+#buttonarea button:hover,
+#config button:hover,
+#config select:hover,
+.closebutton:hover,
+.smallbutton:hover {
 	background:linear-gradient(to bottom, #468ccf 5%, #63b8ee 100%);
 	background-color:#468ccf;
 }
@@ -194,6 +204,10 @@ div#archiveSelection {
     padding: 10px;
     box-shadow: 3px 3px 14px -6px black;
 }
+/*mark as played:*/
+.rpbbButton.played {
+  background: #35353873;
+}
 
 .buttonKey {
     border-radius: 0.5ch;
@@ -218,10 +232,12 @@ button {
         "devices description description volume"
         "key description description volume"
         "key duration duration volume"
-        "key checkbox checkbox volume";
+        "key checkbox checkbox volume"
+        "groupname checkbox checkbox volume";
     grid-template-columns:10ch 10ch 5ch 5ch;
     height:7em;
 }
+
 
 .bgrid .buttonKey {
     grid-area: key;
@@ -363,8 +379,9 @@ div#fileManagerDialog.show{
     text-align: center;
 }
 
-#helpdialog div {
-  width: 80%;
+#helpdialog > div {
+  width: 90%;
+  height: 60vh;
   overflow: hidden;
   margin: 30px;
   overflow-y: auto;
@@ -430,8 +447,38 @@ div#fileManagerLsTarget {}
   grid-area:active;
 }
 
+#fileManagerPlaylistArea{
+  float:right;
+  width:30ch;
+  margin:5px;
+  max-height:80%;
+  overflow-y:auto;
+  display: none;
+}
+#fileManagerPlaylistArea.show{
+  display: block;
+}
+
+.playlistentry div {
+    display: inline-block;
+    width: 20ch;
+}
+
+.playlistentry button {
+    display: inline-block;
+}
+
+.playlistentry {
+    border-bottom: 1px dashed;
+}
 
 /*group*/
+
+.groupname{
+  grid-area:groupname;
+  text-align: center;
+  font-weight: bold;
+}
 
 .grouplistelement {
     display: grid;
@@ -495,14 +542,18 @@ div#rabomswrapper {
 h1#rabomstitle {
     width: 7ch;
     display: inline-block;
-    padding: 10px;
     margin: 0;
     border: 1px solid transparent;
     border-radius: 0 0 50% 0%;
-    /* margin-top: -1%; */
-    background: orange;
+    /* margin-top: -1%;
+    padding: 10px;
+    background: orange;*/
     position: absolute;
     left: 0;
+}
+#rabomstitle img{
+  width:12ch;
+  margin-bottom:-1ch;
 }
 
 input#configFaderTime, input#configFadeInTime {

@@ -147,7 +147,7 @@ var fileManager = {
     target.innerHTML = "";
     target.appendChild(rdiv);
   },
-  lsPath:function(ppath){
+  lsPath:function(ppath, options){
     path = ppath;
     if(this.fs.length===0)return;
     if(!path)path=this.lastUsedPath;
@@ -156,11 +156,69 @@ var fileManager = {
     this.ls(directory);
     this.lastUsedPath = path;
     document.getElementById("fileManagerDialog").classList.add("show");
+    if(options && options.playlist){
+      document.getElementById("fileManagerPlaylistArea").classList.add("show");
+      this.actualOptions = options;
+      this.showPlaylist();
+    }
   },
   fileChosen:function(fullpath){
     let filename = fullpath.substring(fullpath.lastIndexOf("/")+1);
     let basepath = fullpath.substring(0,fullpath.lastIndexOf("/")+1);
-    raBoms.finishFile(filename,basepath);
+    if(this.actualOptions===null || this.actualOptions===undefined){
+      raBoms.finishFile(filename,basepath);
+      document.getElementById("fileManagerDialog").classList.remove("show");
+    }else if(this.actualOptions && this.actualOptions.playlist){
+      this.actualOptions.playlist.push({filename:filename,basepath:basepath});
+      this.showPlaylist();
+    }
+  },
+  showPlaylist:function(){
+    var playlistdiv = document.getElementById("fileManagerPlaylist");
+    playlistdiv.innerHTML = "";
+    for(var x=0;x<this.actualOptions.playlist.length;x++){
+      var acp = this.actualOptions.playlist[x];
+      var wrapper = document.createElement("div");
+      wrapper.classList.add("playlistentry");
+      var filename = document.createElement("div");
+      filename.innerText = acp.filename;
+
+      var del = document.createElement("button");
+      del.title = "borrar / delete "+acp.filename;
+      del.innerText="x";
+      
+      del.name=x;
+      del.onclick = function(){
+        fileManager.deleteFromPlaylist(this.name);
+      }
+      var up = document.createElement("button");
+      up.title = "más adelante / up";
+      up.innerText="⏫";
+      up.name=x;
+      up.onclick=function(){
+        var pos = this.name;
+        if(!pos>0)return;
+        var playlist = fileManager.actualOptions.playlist;
+        var olditem = playlist[pos];
+        playlist.splice(pos,1);
+        playlist.splice(pos-1,0,olditem);
+        fileManager.showPlaylist();
+      }
+      wrapper.appendChild(filename);
+      wrapper.appendChild(del);
+      wrapper.appendChild(up);
+      playlistdiv.appendChild(wrapper);
+    }
+  },
+  deleteFromPlaylist:function(number){
+    if(!this.actualOptions.playlist || this.actualOptions.playlist.length<=number)return;
+    this.actualOptions.playlist.splice(number,1);
+    this.showPlaylist();
+  },
+  chosePlaylist:function(){
+    raBoms.finishFile(this.actualOptions);
+    this.actualOptions = null;
     document.getElementById("fileManagerDialog").classList.remove("show");
+    document.getElementById("fileManagerPlaylistArea").classList.remove("show");
   }
 }
