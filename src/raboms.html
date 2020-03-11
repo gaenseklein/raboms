@@ -308,9 +308,13 @@ raBoms = {
         this.showFileIndex();
     },
     cleanButtons:function(){
-      delete this.buttons;
-      this.buttons = {};
-      this.showFileIndex();
+      var prompttext = "are you shure you want to delete all buttons? this action cannot be undone";
+      if(document.body.classList.contains("langes"))prompttext="estas seguro que quieres borrar todos botones?";
+      if(confirm(prompttext)){
+        delete this.buttons;
+        this.buttons = {};
+        this.showFileIndex();
+      }
     },
     setVolume:function(button,volume){
         if(this.buttons[button]){
