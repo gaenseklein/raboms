@@ -9,7 +9,7 @@
 <script src="fileManager.js"></script>
 <script src="../database.js"></script>
 <script>
-version = "0.7.1";
+version = "0.7.2";
 
 function pBB(button, audiosource, bpath){
     this.button = button;
@@ -128,6 +128,7 @@ function pBB(button, audiosource, bpath){
     this.audio.volume = this.volume;
 
     this.setPlaylistTo = function(indexnr){
+      if(indexnr<0)indexnr=0;
       if(this.playlist && this.playlist.length>indexnr){
         var oldaudio = this.audio;
         this.playlistcounter=indexnr;
@@ -200,18 +201,21 @@ raBoms = {
           if(this.temporaryButton!=null)this.setNewButtonKey(button);
         }
     },
-    stopButton:function(button){
+    stopButton:function(button, transitiontime){
         if(this.buttons[button]){
             this.buttons[button].stop();
             this.stopYieldDate = new Date().getTime();
         }
+        var transition = transitiontime;
+        if(transition===null || transition===undefined)transition="all 100ms ease";
         var plb = this.buttondiv(button);
         if(plb){
-          plb.style.transition = "all 100ms ease";
+          plb.style.transition = transition;
           var buttonkeydiv = plb.getElementsByClassName("buttonKey")[0];
           buttonkeydiv.style.transitionDuration = "unset";
           plb.classList.remove("playing");
           plb.classList.remove("fadeout");
+          plb.classList.remove("onloop");
         }
         console.log(document.getElementById("rpbbid"+button));
         var plind = this.playingbuttons.indexOf(button);
@@ -219,7 +223,9 @@ raBoms = {
     },
     audioEnded:function(button){
         if(this.buttons[button] && this.buttons[button].loop){
-          this.stopButton(button);
+          var plb = this.buttondiv(button);
+          this.stopButton(button,"none");
+          if(plb)plb.classList.add("onloop");
           setTimeout("raBoms.playButton('"+button+"')",10);
           return;
         }
@@ -227,13 +233,18 @@ raBoms = {
         var abutton  = document.getElementById("rpbbid"+button);
         abutton.style.transition = "all 300ms ease";
         abutton.classList.remove("playing");
-        if(this.markAsEnded)abutton.classList.add("played");
+        if(this.markAsEnded)abutton.classList.add("played"+this.markAsEndedMode);
     },
-    activateMarkAsEnded:function(value){
+    activateMarkAsEnded:function(value, mode){
       this.markAsEnded = value;
+      this.markAsEndedMode = mode;
       if(value===false){
-        var allMarked = document.getElementsByClassName("played");
-        for(var x=allMarked.length-1;x>=0;x--)allMarked[x].classList.remove("played");
+        var allMarked = document.getElementsByClassName("played"+mode);
+        for(var x=allMarked.length-1;x>=0;x--)allMarked[x].classList.remove("played"+mode);
+      }
+      if(value && mode==="hide"){
+        var allMarked = document.getElementsByClassName("playedgris");
+        for(var x=allMarked.length-1;x>=0;x--)allMarked[x].classList.add("played"+mode);
       }
     },
     setLoop:function(key,value){
@@ -356,8 +367,12 @@ raBoms = {
             //if(!fidiv && x===0)alert("estoy afuera");
             var audiosource = raBoms.buttons[key].audiosource;
             var audioname = raBoms.buttons[key].audioname;
-            var checkboxes = '<span class="checkbox" title="loop"><label>🔄</label><input type="checkbox" onclick="raBoms.setLoop(\''+key+'\',this.checked)"'+loop+'></span>'+
-            '<span class="checkbox" title="fadein"><label>◢</label><input type="checkbox" onclick="raBoms.setFadeIn(\''+key+'\',this.checked)"'+fadein+'></span>';
+            var loop = raBoms.buttons[key].loop;
+            if(loop)loop=" checked";else loop="";
+            var fadein = raBoms.buttons[key].fadeInChecked;
+            if(fadein)fadein = " checked";else fadein="";
+            var checkboxes = '<span class="checkbox" title="loop"><label>🔄</label><input type="checkbox" onclick="raBoms.setLoop(\''+key+'\',this.checked);raBoms.saveToCache();"'+loop+'></span>'+
+            '<span class="checkbox" title="fadein"><label>◢</label><input type="checkbox" onclick="raBoms.setFadeIn(\''+key+'\',this.checked);raBoms.saveToCache();"'+fadein+'></span>';
 
             if(raBoms.buttons[key].playlist){
               var playlisthtml = '<select id="playlistSelection'+key+'" class="playlist" name="'+key+'"onchange="raBoms.buttons[this.name].setPlaylistTo(this.value)">';
@@ -378,7 +393,6 @@ raBoms = {
             let durationminutes = Math.floor(duration/60);
             let durationseconds = Math.floor((duration - (durationminutes *60))*100)/100;
             duration = durationminutes + " min "+durationseconds+" s";
-            var loop = raBoms.buttons[key].loop;
             var devices = "";
             devices = '<select class="buttonDevices" onchange="raBoms.setDevice(\''+key+'\',this.value)">';
             devices+='<option value="default" checked>default</option>';
@@ -393,9 +407,6 @@ raBoms = {
             devices+='<option value="delete">delete/borrar</option>';
             devices+="</select>";
 
-            if(loop)loop=" checked";else loop="";
-            var fadein = raBoms.buttons[key].fadeInChecked;
-            if(fadein)fadein = " checked";else fadein="";
 
             var fidiv = document.getElementById("fileIndex");
             var group = this.groupOfKey(key);
@@ -457,9 +468,10 @@ raBoms = {
                   this.buttons[actb.button].volume=actb.volume;
                   this.buttons[actb.button].audio.volume=actb.volume;
                 }
+                this.buttons[actb.button].loop=actb.loop;
+
             }
         }
-        var configstring = window.localStorage.getItem("radioPBBconfig");
         if(configstring){
           var configobj = JSON.parse(configstring);
           if(configobj.fader){
@@ -585,7 +597,18 @@ raBoms = {
           if(ranges[x].type==="range")ranges[x].addEventListener("input",function(){raBoms.saveToCache()});
         }
         document.getElementById("secondClickChoice").addEventListener("change",function(){raBoms.saveToCache();});
-
+        //adding menu-hide capability:
+        var configdiv = document.getElementById("config");
+        var titles = configdiv.getElementsByTagName("H3");
+        for(let cx=0;cx<titles.length;cx++){
+          var updowntoggle = document.createElement("span");
+          updowntoggle.innerText = "^";
+          updowntoggle.classList.add("updowntoggle");
+          titles[cx].appendChild(updowntoggle);
+          titles[cx].addEventListener("click",function(){
+            this.parentNode.classList.toggle("closed");
+          });
+        }
     },
     initDevices: async function(){
       var alldevices = await navigator.mediaDevices.enumerateDevices();
@@ -1094,10 +1117,17 @@ window.addEventListener("keyup", function(e){
         <span class="langes">Programa</span>
       </h3>
       <div class="checkboxdiv">
-        <input type="checkbox" oninput="raBoms.activateMarkAsEnded(this.checked)">
+        <input type="checkbox" oninput="raBoms.activateMarkAsEnded(this.checked, 'gris')">
         <label>
           <span class="langen" title="">Mark played buttons</span>
           <span class="langes" title="">pone gris a botones usados</span>
+        </label>
+      </div>
+      <div class="checkboxdiv">
+        <input type="checkbox" oninput="raBoms.activateMarkAsEnded(this.checked, 'hide')">
+        <label>
+          <span class="langen" title="">Hide played buttons</span>
+          <span class="langes" title="">Oculta botones usados</span>
         </label>
       </div>
     </div>

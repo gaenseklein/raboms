@@ -26,7 +26,7 @@ body.langen .langen{
   grid-template-areas:
   ". buttonarea"
   "config list";
-  grid-template-rows:5em 1fr;
+  grid-template-rows:auto 1fr;
   grid-template-columns:auto 1fr;
 }
 
@@ -92,6 +92,9 @@ span.buttonSymbol {
     min-height:3em;
 }
 
+.checkbox button.smallbutton {
+    margin-bottom: 0.5em;
+}
 
 /*new button dialog*/
 div#newButtonDialog,
@@ -205,8 +208,16 @@ div#archiveSelection {
     box-shadow: 3px 3px 14px -6px black;
 }
 /*mark as played:*/
-.rpbbButton.played {
-  background: #35353873;
+.rpbbButton.playedgris {
+  background-image:  linear-gradient(to right, rgba(100,0,0,0.7) 50%, #35353873 50%);
+}
+div.rpbbButton.playedhide {
+  display:none;
+}
+
+/*onloop-background-change:*/
+.rpbbButton.playing.onloop{
+  background-image:linear-gradient(to right, rgba(100,0,0,0.7) 50%, rgba(100,0,0,0.5) 50%);
 }
 
 .buttonKey {
@@ -567,6 +578,27 @@ input#configFaderTime, input#configFadeInTime {
   max-height:100%;
   resize: horizontal;
 }
+#config .closed div,
+#config .closed button,
+#config .closed input,
+#config .closed select,
+#config .closed .checkbox {
+    display: none;
+}
+span.updowntoggle {
+    float: right;
+    font-weight: bold;
+    transform: scale(1,-1);
+}
+
+.closed span.updowntoggle {
+    transform: none;
+}
+
+#config h3{
+  cursor:pointer;
+}
+
 #config #languageSelector,
 #config select{
   padding-left:0;
