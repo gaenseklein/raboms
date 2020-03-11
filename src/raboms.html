@@ -9,20 +9,20 @@
 <script src="fileManager.js"></script>
 <script src="../database.js"></script>
 <script>
-version = 0.7;
+version = "0.7.1";
 
 function pBB(button, audiosource, bpath){
     this.button = button;
     this.basepath = document.getElementById("basepath").value;
     if(bpath)this.basepath = bpath;
-    if(this.basepath.length<1){
-        alert("you have to set the basepath before choosing a file\nTienes que configurar la carpeta base de tus archivos");
-         document.getElementById("basepath").classList.add("unset");
-         document.getElementById("basepath").focus();
-        return;
-    }
-    if(this.basepath.charAt(this.basepath.length-1)!="/")this.basepath+="/";
     if(typeof audiosource === "string"){
+      if(this.basepath.length<1){
+        alert("you have to set the basepath before choosing a file\nTienes que configurar la carpeta base de tus archivos");
+        document.getElementById("basepath").classList.add("unset");
+        document.getElementById("basepath").focus();
+        return;
+      }
+      if(this.basepath.charAt(this.basepath.length-1)!="/")this.basepath+="/";
         this.audioname = audiosource;
         this.audiosource = this.basepath+this.audioname;
         try{
@@ -356,8 +356,8 @@ raBoms = {
             //if(!fidiv && x===0)alert("estoy afuera");
             var audiosource = raBoms.buttons[key].audiosource;
             var audioname = raBoms.buttons[key].audioname;
-            var checkboxes = '<label>loop</label><input type="checkbox" onclick="raBoms.setLoop(\''+key+'\',this.checked)"'+loop+'>'+
-            '<label>fadein</label><input type="checkbox" onclick="raBoms.setFadeIn(\''+key+'\',this.checked)"'+fadein+'>';
+            var checkboxes = '<span class="checkbox" title="loop"><label>🔄</label><input type="checkbox" onclick="raBoms.setLoop(\''+key+'\',this.checked)"'+loop+'></span>'+
+            '<span class="checkbox" title="fadein"><label>◢</label><input type="checkbox" onclick="raBoms.setFadeIn(\''+key+'\',this.checked)"'+fadein+'></span>';
 
             if(raBoms.buttons[key].playlist){
               var playlisthtml = '<select id="playlistSelection'+key+'" class="playlist" name="'+key+'"onchange="raBoms.buttons[this.name].setPlaylistTo(this.value)">';
@@ -411,7 +411,7 @@ raBoms = {
   '<button class="buttonKey" onclick="raBoms.playButton(\''+key+'\')" title="'+key+'">'+key+'</button>'+
   '<div class="buttonSource" title="'+audiosource+'">'+audioname+'</div>'+
   '<div class="buttonDuration">'+duration+'</div>'+
-  '<div class="volume"><input type="range" id="rpbbvolume'+key+'" oninput="raBoms.setVolume(\''+key+'\',this.value)" value="'+volume+'" min="1" max="100"></div>'+
+  '<div class="volume"><input type="range" id="rpbbvolume'+key+'" oninput="raBoms.setVolume(\''+key+'\',this.value);raBoms.saveToCache();" value="'+volume+'" min="1" max="100"></div>'+
   '<div class="checkbox">'+
     checkboxes+
   '</div>'+
@@ -452,6 +452,11 @@ raBoms = {
                 }else{
                   this.addButton(actb.button, actb.audioname, actb.basepath);
                 }
+                //if(actb.volume)this.setVolume(actb.button,actb.volume);
+                if(actb.volume){
+                  this.buttons[actb.button].volume=actb.volume;
+                  this.buttons[actb.button].audio.volume=actb.volume;
+                }
             }
         }
         var configstring = window.localStorage.getItem("radioPBBconfig");
@@ -460,6 +465,7 @@ raBoms = {
           if(configobj.fader){
             this.fader=configobj.fader;
             document.getElementById("configFaderTime").value = this.fader.fadeouttime;
+            document.getElementById("configFaderTimeRange").value = this.fader.fadeouttime;
             document.getElementById("configFaderMultiplicator").value = this.fader.multiplicator*10;
             document.getElementById("configFaderSteps").value = this.fader.steps;
           }
@@ -573,6 +579,13 @@ raBoms = {
         }
         //getting device-ids:
         this.initDevices();
+        //adding saveToCache to all ranges and missing buttons:
+        var ranges = document.getElementsByTagName("input");
+        for(var x=0;x<ranges.length;x++){
+          if(ranges[x].type==="range")ranges[x].addEventListener("input",function(){raBoms.saveToCache()});
+        }
+        document.getElementById("secondClickChoice").addEventListener("change",function(){raBoms.saveToCache();});
+
     },
     initDevices: async function(){
       var alldevices = await navigator.mediaDevices.enumerateDevices();
@@ -905,27 +918,27 @@ window.addEventListener("keyup", function(e){
   </h1>
     <button id="newFileButton" onclick="raBoms.createNewButton()">
       <span class="buttonSymbol">+ </span>
-      <span class="langen">Add new Button</span>
-      <span class="langes">Añadir nuevo boton</span>
+      <span class="langen">Add Button</span>
+      <span class="langes">Añadir boton</span>
     </button>
     <button id="newPlaylistButton" onclick="raBoms.createNewButton({playlist:[]})">
       <span class="buttonSymbol">+++</span>
-      <span class="langen">Add new playlist</span>
-      <span class="langes">Añadir nueva playlist</span>
+      <span class="langen">Add playlist</span>
+      <span class="langes">Añadir playlist</span>
     </button>
-    <button id="stopAllButton" onclick="raBoms.stopAll()">
+    <button id="stopAllButton" onclick="raBoms.stopAll()" title="Escape">
       <span class="buttonSymbol">⏹</span>
       <span class="langen">Stop all</span>
       <span class="langes">Parar todo</span>
       <span class="shortcutDisplay">(Escape)</span>
     </button>
-    <button id="fadeAllButton" onclick="raBoms.fadeoutAll()">
+    <button id="fadeAllButton" onclick="raBoms.fadeoutAll()" title="Enter">
       <span class="buttonSymbol">◣</span>
       <span class="langen">Fadeout all</span>
       <span class="langes">Fadeout todo</span>
       <span class="shortcutDisplay">(Enter)</span>
     </button>
-    <button id="muteToSpeakButton" onmousedown="raBoms.muteToSpeak()" onmouseup="raBoms.unmuteToSpeak()">
+    <button id="muteToSpeakButton" onmousedown="raBoms.muteToSpeak()" onmouseup="raBoms.unmuteToSpeak()" title="Space / Espacio">
       <span class="buttonSymbol">🗣🎤</span>
       <span class="langen">Mute to Speak</span>
       <span class="langes">Bajar todo</span>

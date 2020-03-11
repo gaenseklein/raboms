@@ -219,9 +219,9 @@ button {
     margin: 5px;
 }
 .buttonDuration {
-    margin: 1ch;
-    margin-right: 2ch;
     min-width: 14ch;
+    align-self: center;
+    justify-self: end;
 }
 
 .bgrid .rpbbButton {
@@ -232,10 +232,11 @@ button {
         "devices description description volume"
         "key description description volume"
         "key duration duration volume"
-        "key checkbox checkbox volume"
-        "groupname checkbox checkbox volume";
+        "groupname checkbox checkbox volume"
+        "groupname . . volume";
     grid-template-columns:10ch 10ch 5ch 5ch;
-    height:7em;
+    height:8em;
+    grid-template-rows: 1em 1.5em 2.5em 2.5em 2em;
 }
 
 
