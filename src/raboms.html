@@ -9,7 +9,7 @@
 <script src="fileManager.js"></script>
 <script src="../database.js"></script>
 <script>
-version = "0.7.2";
+version = "0.7.3";
 
 function pBB(button, audiosource, bpath){
     this.button = button;
@@ -436,23 +436,44 @@ raBoms = {
         if(audioname)
         this.saveToCache();
     },
-    saveToCache:function(){
+    saveToCache:function(projectname){
         var saveObject = JSON.stringify(this.buttons);
-        var saveConfig = JSON.stringify({
+        var saveConfig = {
           fader:this.fader,
           secondClick:document.getElementById("secondClickChoice").value,
           muteToSpeakVolume:this.muteToSpeakVolume,
           groups:this.groups
-        });
+        }
         var basepath = document.getElementById("basepath").value;
+        if(typeof projectname === "string"){
+          var oldconfigstring = window.localStorage.getItem("radioPBBconfig");
+          var oldconfig;
+          var projects = {};
+          if(oldconfigstring)oldconfig = JSON.parse(oldconfigstring);
+          if(oldconfig && oldconfig.projects)projects=oldconfig.projects;
+          projects[projectname] = JSON.stringify({saveObject:this.buttons,saveConfig:saveConfig,basepath:basepath});
+          saveConfig.projects = projects;
+        }
+        saveConfig = JSON.stringify(saveConfig);
         window.localStorage.setItem("radioPBBbasepath",basepath);
         window.localStorage.setItem("radioPBBfiles",saveObject);
         window.localStorage.setItem("radioPBBconfig",saveConfig);
     },
-    loadFromCache:function(){
+    loadFromCache:function(projectname){
+      var configstring = window.localStorage.getItem("radioPBBconfig");
         var basepath = window.localStorage.getItem("radioPBBbasepath");
         if(basepath)document.getElementById("basepath").value = basepath;
         var cbstring = window.localStorage.getItem("radioPBBfiles");
+        if(projectname){
+          var confparent = JSON.parse(configstring);
+          var projects = confparent.projects;
+          if(projects && projects[projectname]!=undefined){
+            var cachedproject = JSON.parse(projects[projectname]);
+            basepath = cachedproject.basepath;
+            configstring = cachedproject.saveConfig;
+            cbstring = cachedproject.saveObject;
+          }
+        }
         if(cbstring){
             var cachedbuttons = JSON.parse(cbstring);
             var keys = Object.keys(cachedbuttons);
