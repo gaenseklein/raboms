@@ -6,10 +6,11 @@
 <title>raBoms</title>
 <link rel="stylesheet" href="raboms.css">
 <script src="FileSaver.js"></script>
+<script src="Sortable.js"></script>
 <script src="fileManager.js"></script>
 <script src="../database.js"></script>
 <script>
-version = "0.7.3";
+version = "0.7.5";
 
 function pBB(button, audiosource, bpath){
     this.button = button;
@@ -93,6 +94,7 @@ function pBB(button, audiosource, bpath){
           console.log(e);
         }
         actaudio.onended = function() {
+          if(raBoms.playingbuttons.indexOf(this.attachedKey) === -1 || raBoms.buttons[this.attachedKey].getHTMLButton().classList.contains("fadeout"))return;
             var actb = raBoms.buttons[this.attachedKey];
             actb.playlistcounter++;
             if(actb.playlistcounter>=actb.playlist.length){
@@ -101,7 +103,7 @@ function pBB(button, audiosource, bpath){
             console.log(this);
             console.log(this.attachedKey);
             actb.duration = actb.durationtotal;
-            actb.playlistcounter=0;
+            actb.playlistcounter=actb.playlist.length-1;
           }else{
             actb.setPlaylistTo(actb.playlistcounter);
             actb.audio.play();
@@ -114,21 +116,63 @@ function pBB(button, audiosource, bpath){
     }else{
         return;
     }
-    this.play = function(){
-        this.audio.play();
+    this.play = async function(){
+        try{
+          await this.audio.play();
+        }catch(e){
+          console.log(e);
+          console.log(e.name);
+          if(e.name==="NotAllowedError"){
+            //handling error of chrome: not allowed before clicking on page:
+            let errormessage = "please click on the page once to start raboms, otherwise your browser does not allow play on keyboardstrikes";
+            if(document.body.classList.contains("langes"))errormessage = "haga un click al navegador porfa. si no tu navegador no permite lanzar sonidos con teclas solo";
+            errormessage+="<br>error:<br>"+e;
+            //alert(errormessage);
+            //instead of simple alert - which still wants user to interact later - we use a div and force the user to interact once:
+            var helpdialog = document.getElementById("helpdialog");
+            var textdiv = helpdialog.querySelector("div");
+            textdiv.innerHTML = errormessage;
+            helpdialog.classList.add("show");
+            helpdialog.onclick = function(){
+              raBoms.stopAll();
+            }
+            //let plnr = raBoms.playingbuttons.indexOf(this.button);
+            //this.setPlaylistTo(0);
+            //if(plnr>-1)raBoms.playingbuttons.splice(plnr,1);
+            //if(this.playlist)this.setPlaylistTo(this.playlistcounter);
+            return;
+          }
+        };
+        //check if playlist is extended - if so change to act button:
+        let htmlbutton = this.getHTMLButton();
+        if(this.playlist && htmlbutton && htmlbutton.classList.contains("extended")){
+          let tracks = htmlbutton.getElementsByClassName("track");
+          let oldtrack = htmlbutton.querySelector(".track.playing");
+          oldtrack.style.transition = "none";
+          oldtrack.classList.remove("playing");
+          tracks[this.playlistcounter].style.transition = "all "+this.playlist[this.playlistcounter].duration+"s linear 0s"
+          tracks[this.playlistcounter].classList.add("playing");
+          var oldtop = document.getElementById("playlistarea").scrollTop;
+          tracks[this.playlistcounter].scrollIntoView();
+          document.getElementById("playlistarea").scrollTop = oldtop;
+        }
+        //start background-animation anew:
+        raBoms.startBackgroundAnimation(this.button);
     }
     this.stop = function(){
-      if(this.playlist && this.playlistcounter+1<this.playlist.length){
-        this.setPlaylistTo(this.playlistcounter+1);
-      }
         this.audio.pause();
         this.audio.currentTime = 0;
+        if(this.playlist && this.playlistcounter+1<this.playlist.length){
+          this.setPlaylistTo(this.playlistcounter+1);
+        }
     }
     this.volume = raBoms.standardVolume;
     this.audio.volume = this.volume;
 
-    this.setPlaylistTo = function(indexnr){
+    this.setPlaylistTo = function(indexnumber){
+      var indexnr = indexnumber;
       if(indexnr<0)indexnr=0;
+      var oldindexnr = this.playlistcounter;
       if(this.playlist && this.playlist.length>indexnr){
         var oldaudio = this.audio;
         this.playlistcounter=indexnr;
@@ -140,7 +184,19 @@ function pBB(button, audiosource, bpath){
           //without transitions:
           oldaudio.pause();
           oldaudio.currentTime = 0;
-          this.audio.play();
+          this.play();
+        }else{
+          //check if playlist is extended - if so change to act track:
+          let rpbbb = this.getHTMLButton();
+          raBoms.setBackgroundWidth(this);
+          if(rpbbb && rpbbb.classList.contains("extended")){
+            let tracks = rpbbb.getElementsByClassName("track");
+            tracks[oldindexnr].style.transition = "none";
+            tracks[oldindexnr].classList.remove("playing");
+            tracks[this.playlistcounter].style.transition = "all "+this.playlist[this.playlistcounter].duration+"s linear 0s"
+            tracks[this.playlistcounter].classList.add("playing");
+            tracks[this.playlistcounter].scrollIntoView();
+          }
         }
         let durleft = 0;
         for(var dx=this.playlistcounter;dx<this.playlist.length;dx++){
@@ -149,6 +205,7 @@ function pBB(button, audiosource, bpath){
         this.duration = durleft;
         this.playlistentryDuration = this.playlist[this.playlistcounter].duration;
         document.getElementById("playlistSelection"+this.button).value=this.playlistcounter;
+
       }else if(indexnr==="add"){
         raBoms.createNewButton({playlist:this.playlist});
         raBoms.setNewButtonKey(this.button);
@@ -160,6 +217,9 @@ function pBB(button, audiosource, bpath){
     };
     this.playlistBefore = function(){
       if(this.playlist)this.setPlaylistTo(this.playlistcounter-1);
+    };
+    this.getHTMLButton = function(){
+      return document.getElementById("rpbbid"+this.button);
     }
 
 }
@@ -182,7 +242,7 @@ raBoms = {
                 this.buttons[button].play();
                 var dur = Math.floor(this.buttons[button].duration);
                 var rpbbutton = this.buttondiv(button);
-                rpbbutton.style.transition = "all " +dur+ "s linear";
+                //rpbbutton.style.transition = "all " +dur+ "s linear";
                 rpbbutton.classList.add("playing");
                 this.showRemainingDuration(button);
                 if(this.buttons[button].fadeInChecked)this.fadeinButton(button);
@@ -202,6 +262,8 @@ raBoms = {
         }
     },
     stopButton:function(button, transitiontime){
+        var plind = this.playingbuttons.indexOf(button);
+        if(plind>=0)this.playingbuttons.splice(plind,1);
         if(this.buttons[button]){
             this.buttons[button].stop();
             this.stopYieldDate = new Date().getTime();
@@ -210,28 +272,32 @@ raBoms = {
         if(transition===null || transition===undefined)transition="all 100ms ease";
         var plb = this.buttondiv(button);
         if(plb){
-          plb.style.transition = transition;
+          //plb.style.transition = transition;
           var buttonkeydiv = plb.getElementsByClassName("buttonKey")[0];
           buttonkeydiv.style.transitionDuration = "unset";
+          //var buttonbg = plb.querySelector(".background");
+          //buttonbg.style.transitionDuration=null;
+          this.stopBackgroundAnimation(button);
           plb.classList.remove("playing");
           plb.classList.remove("fadeout");
           plb.classList.remove("onloop");
         }
         console.log(document.getElementById("rpbbid"+button));
-        var plind = this.playingbuttons.indexOf(button);
-        if(plind>=0)this.playingbuttons.splice(plind,1);
     },
     audioEnded:function(button){
+      //this.buttons[button].getHTMLButton().querySelector(".background").style.transitionDuration=null;
+      this.stopBackgroundAnimation(button);
         if(this.buttons[button] && this.buttons[button].loop){
           var plb = this.buttondiv(button);
           this.stopButton(button,"none");
           if(plb)plb.classList.add("onloop");
           setTimeout("raBoms.playButton('"+button+"')",10);
+          this.startBackgroundAnimation(button);
           return;
         }
         for(var x=this.playingbuttons.length-1;x>=0;x--)if(this.playingbuttons[x]===button)this.playingbuttons.splice(x,1);
         var abutton  = document.getElementById("rpbbid"+button);
-        abutton.style.transition = "all 300ms ease";
+        //abutton.style.transition = "all 300ms ease";
         abutton.classList.remove("playing");
         if(this.markAsEnded)abutton.classList.add("played"+this.markAsEndedMode);
     },
@@ -278,7 +344,7 @@ raBoms = {
     },
     setNewButtonKey:function(button){
       var nbd = document.getElementById("newButtonDialog");
-        if(fileManager && fileManager.fs && fileManager.fs.length>0){
+        if(typeof fileManager!="undefined" && fileManager.fs && fileManager.fs.length>0){
           var dialog = document.getElementById("fileManagerDialog");
           if(dialog.classList.contains("show"))return;
           dialog.classList.add("show");
@@ -286,12 +352,17 @@ raBoms = {
           document.getElementById("fileManagerButtonKey").innerText=button;
           fileManager.lsPath(null,this.temporaryButton.options);
           nbd.classList.remove("show");
-          return;
+        }else{
+          this.temporaryButton.key = button;
+          var nbk = document.getElementById("newButtonKey");
+          nbk.innerText = button;
+          nbd.classList.remove("waiting");
+          if(this.temporaryButton.options && this.temporaryButton.options.playlist){
+            nbd.classList.add("playlistdialog");
+          }else{
+            nbd.classList.remove("playlistdialog");
+          }
         }
-        this.temporaryButton.key = button;
-        var nbk = document.getElementById("newButtonKey");
-        nbk.innerText = button;
-        nbd.classList.remove("waiting");
 
     },
     finishFile:function(filename,basepath){
@@ -302,6 +373,21 @@ raBoms = {
         this.active = true;
         this.temporaryButton = null;
         this.showFileIndex();
+    },
+    finishPlaylist:function(playliststring){
+      var fullpaths = playliststring.split("\n");
+      var playlistarray = new Array();
+      for(var x=0;x<fullpaths.length;x++){
+        var path = fullpaths[x].substring(0,fullpaths[x].lastIndexOf("/")+1);
+        var filename = fullpaths[x].substring(fullpaths[x].lastIndexOf("/")+1);
+        if(path && filename){
+            playlistarray.push({
+              filename:filename,
+              basepath:path
+            });
+        }
+      }
+      this.finishFile({playlist:playlistarray},null);
     },
     removeButton:function(button){
         if(this.buttons[button])delete this.buttons[button];
@@ -347,8 +433,26 @@ raBoms = {
         advbdialog.classList.add("show");
     },
     showFileIndex:function(){
+        //helperfunction duration:
+        function writeDuration(dur){
+          var duration = Math.floor(dur*100)/100;
+          let durationminutes = Math.floor(duration/60);
+          let durationseconds = Math.floor((duration - (durationminutes *60))*100)/100;
+          duration = durationminutes + " min "+durationseconds+" s";
+          return duration;
+        }
         var fidiv = document.getElementById("fileIndex");
+        document.getElementById("playlistarea").innerHTML="";
+        /*
+        var ongoingbuttons = new Array();
+        for(var x=0;x<raBoms.playingbuttons.length;x++){
+          var oldongoingb = document.getElementById("rpbbid"+raBoms.playingbuttons[x]);
+          ongoingbuttons.push(oldongoingb);
+          document.getElementById("storageroom").appendChild(oldongoingb);
+        }
+        */
         fidiv.innerHTML = "";
+        var playlistarea = "";
         var keys = Object.keys(this.buttons);
         var htmlstring = "";
         if(this.groups){
@@ -372,21 +476,42 @@ raBoms = {
             var audiosource = raBoms.buttons[key].audiosource;
             var audioname = raBoms.buttons[key].audioname;
             var loop = raBoms.buttons[key].loop;
+            var cssclasses = "";
+            var playlistextendedhtml="";
             if(loop)loop=" checked";else loop="";
             var fadein = raBoms.buttons[key].fadeInChecked;
             if(fadein)fadein = " checked";else fadein="";
-            var checkboxes = '<span class="checkbox" title="loop"><label>🔄</label><input type="checkbox" onclick="raBoms.setLoop(\''+key+'\',this.checked);raBoms.saveToCache();"'+loop+'></span>'+
-            '<span class="checkbox" title="fadein"><label>◢</label><input type="checkbox" onclick="raBoms.setFadeIn(\''+key+'\',this.checked);raBoms.saveToCache();"'+fadein+'></span>';
+            var checkboxes = '<span class="checkbox" title="loop"><label class="buttonSymbol">🗘</label><input type="checkbox" onclick="raBoms.setLoop(\''+key+'\',this.checked);raBoms.saveToCache();"'+loop+'></span>'+ //⭮🔄🗘
+            '<span class="checkbox" title="fadein"><label class="buttonSymbol">◢</label><input type="checkbox" onclick="raBoms.setFadeIn(\''+key+'\',this.checked);raBoms.saveToCache();"'+fadein+'></span>';
 
             if(raBoms.buttons[key].playlist){
-              var playlisthtml = '<select id="playlistSelection'+key+'" class="playlist" name="'+key+'"onchange="raBoms.buttons[this.name].setPlaylistTo(this.value)">';
+              cssclasses+=" playlist";
+              if(raBoms.buttons[key].expandedPlaylist){
+                cssclasses+=' extended';
+              }
+              checkboxes+='<span class="checkbox" title="expand/enlarga"><label class="buttonSymbol">.0</label><input type="checkbox" onclick="raBoms.expandPlaylist(\''+key+'\',(this.checked));"';
+              if(raBoms.buttons[key].expandedPlaylist)checkboxes+=" checked";
+              checkboxes+='></span>';
+              var playlisthtml = '<select id="playlistSelection'+key+'" class="playlist" name="'+key+'"onchange="raBoms.buttons[this.name].setPlaylistTo((this.value*1))">';
+              playlistextendedhtml = '<ul class="playlistextended">'
               for(var plx=0;plx<raBoms.buttons[key].playlist.length;plx++){
                 playlisthtml+='<option value="'+plx+'"';
-                if(plx===raBoms.buttons[key].playlistcounter)playlisthtml+=' selected';
+                playlistextendedhtml+="<li>";
+                playlistextendedhtml+='<button class="positionchanger">↕</button>';
+                playlistextendedhtml +='<button onclick="raBoms.buttons[\''+key+'\'].setPlaylistTo('+plx+')" class="track';
+
+                if(plx===raBoms.buttons[key].playlistcounter){
+                  playlisthtml+=' selected';
+                  playlistextendedhtml+=' playing';
+                }
                 playlisthtml+='>'+raBoms.buttons[key].playlist[plx].filename+'</option>'
+                playlistextendedhtml+='">'+raBoms.buttons[key].playlist[plx].filename+'</button>';
+                playlistextendedhtml+='<span class="trackduration">'+writeDuration(raBoms.buttons[key].playlist[plx].duration)+'</span>';
+                playlistextendedhtml+="</li>";
               }
               playlisthtml+='<option value="add">+++</option>';
               playlisthtml+="</select>";
+              playlistextendedhtml+="</ul>";
               audioname=playlisthtml;
               checkboxes = '<button class="smallbutton" name="'+key+'" onclick="raBoms.buttons[this.name].playlistBefore()">⏪</button>'+
               '<button class="smallbutton" name="'+key+'" onclick="raBoms.buttons[this.name].playlistNext()">⏩</button>'+
@@ -420,8 +545,9 @@ raBoms = {
               groupstyle = 'style="border: 5px solid '+group.color+'"';
               groupname = '<div class="groupname" style="background:'+group.color+'">'+group.name+'</div>';
             }
-            htmlstring = htmlstring +
-'<div class="rpbbButton" id="rpbbid'+key+'" '+groupstyle+'>'+
+            var readyHtmlString =  ''+
+            '<div class="rpbbButton'+cssclasses+'" id="rpbbid'+key+'" '+groupstyle+'>'+
+  '<div class="background"></div>'+
   groupname+
   '<button class="buttonKey" onclick="raBoms.playButton(\''+key+'\')" title="'+key+'">'+key+'</button>'+
   '<div class="buttonSource" title="'+audiosource+'">'+audioname+'</div>'+
@@ -431,14 +557,110 @@ raBoms = {
     checkboxes+
   '</div>'+
   devices+
+  playlistextendedhtml+
 '</div>';
+        //if(raBoms.playingbuttons.indexOf(key)>-1){
+        //  readyHtmlString = '<div class="placeholder rpbbButton" id="placeholderbutton'+key+'"></div>';
+        //}
+        if(raBoms.buttons[key].expandedPlaylist){
+          playlistarea += readyHtmlString;
+        }else{
+          htmlstring = htmlstring + readyHtmlString;
+        }
+        //for testing purpose render now:
+        //fidiv.innerHTML = htmlstring;
 //'<button class="buttondelete" onclick="raBoms.removeButton(\''+key+'\')" title="delete/borrar">X</button></div>';
             //if(keyx===0)htmlstring = '<h3 class="grouptitle">group</h3><div class="group">'+htmlstring;
             //if(keyx===5)htmlstring +="</div>";
         }; //);
+        let pla = document.getElementById("playlistarea");
+        if(playlistarea.length>0){
+          pla.innerHTML = playlistarea;
+          pla.classList.add("expanded");
+          if(Sortable){
+            this.sortables = new Array();
+            let expandedlists = document.querySelectorAll("#playlistarea .playlistextended");
+            for(var sa = 0;sa<expandedlists.length;sa++){
+              this.sortables.push(Sortable.create(expandedlists[sa],this.sortableConfig));
+            }
+          }
+        }else{
+          pla.classList.remove("expanded");
+        }
         fidiv.innerHTML = htmlstring;
-        if(audioname)
+        //document.getElementById("playlistarea").innerHTML = playlistarea;
+
+        /*if(ongoingbuttons.length>0){
+          for(var x=0;x<ongoingbuttons.length;x++){
+            var actkey = ongoingbuttons[x].id.substring(6);
+            ongoingbuttons[x].id="replacement"+x;
+            this.startBackgroundAnimation(actkey);
+          //  var actplaceholder = document.getElementById("placeholderbutton"+actkey);
+          //  document.getElementById("fileIndex").replaceChild(ongoingbuttons[x],actplaceholder);
+            console.log("ongoing sound:"+actkey+" saved");
+          }
+          document.getElementById("storageroom").innerHTML="";
+      /*    setTimeout(function(){
+            var allplayingbuttons = document.querySelectorAll(".playing .background");
+            for(var x=0;x<allplayingbuttons.length;x++){
+              allplayingbuttons[x].style.width=null;
+            }
+          },2000);
+        }
+        */
+        for(var x=0;x<this.playingbuttons.length;x++){
+          this.startBackgroundAnimation(this.playingbuttons[x]);
+        }
+
+
         this.saveToCache();
+    },
+    setBackgroundWidth(actbutton){
+      var actbackground = actbutton.getHTMLButton().querySelector(".background");
+      let duration = actbutton.audio.duration;
+      let durationleft = duration - actbutton.audio.currentTime;
+      if(actbutton.playlist){
+        duration=actbutton.durationtotal;
+        durationleft = actbutton.audio.duration - actbutton.audio.currentTime;
+        for(var x=actbutton.playlistcounter+1;x<actbutton.playlist.length;x++){
+          durationleft+=actbutton.playlist[x].duration;
+        }
+      }
+
+
+      let actualpos = duration - durationleft;
+      let pct = duration/100;
+      let actw = actualpos/pct;
+      if(actw<0)actw=0;
+      actbackground.style.transitionDuration="100ms";
+      actbackground.style.width=actw+"%";
+      return durationleft;
+    },
+    startBackgroundAnimation:function(actkey, dontstart){
+      var actbutton = raBoms.buttons[actkey];
+      var actbackground = actbutton.getHTMLButton().querySelector(".background");
+      //actbackground.style.transition="none";
+      //actbackground.style.transition=null;
+      var durationleft = this.setBackgroundWidth(actbutton, actbackground);
+      setTimeout("raBoms.startBackgroundTransition('"+actkey+"',"+durationleft+");",200);
+      actbutton.getHTMLButton().classList.add("playing");
+    },
+    startBackgroundTransition:function(key,duration){
+      var actbackground = raBoms.buttons[key].getHTMLButton().querySelector(".background");
+      actbackground.style.transitionDuration=(duration-0.2)+"s";
+      actbackground.style.width="100%";
+
+    },
+    stopBackgroundAnimation:function(actkey){
+      var actbutton = raBoms.buttons[actkey];
+      var actbackground = actbutton.getHTMLButton().querySelector(".background");
+      actbackground.style.transitionDuration=null;
+      if(actbutton.playlist){
+        this.setBackgroundWidth(actbutton, actbackground);
+      }else{
+        actbackground.style.width=null;
+      }
+
     },
     saveToCache:function(projectname){
         var saveObject = JSON.stringify(this.buttons);
@@ -494,6 +716,7 @@ raBoms = {
                   this.buttons[actb.button].audio.volume=actb.volume;
                 }
                 this.buttons[actb.button].loop=actb.loop;
+                this.buttons[actb.button].expandedPlaylist = actb.expandedPlaylist;
 
             }
         }
@@ -527,6 +750,10 @@ raBoms = {
          for(var x=0;x<keys.length;x++){
                 var actb = cachedbuttons[keys[x]];
                 this.addButton(actb.button, actb.audioname, actb.basepath);
+                this.buttons[keys[x]].volume=actb.volume;
+                this.buttons[keys[x]].audio.volume=actb.volume;
+                this.buttons[keys[x]].loop=actb.loop;
+                this.buttons[keys[x]].expandedPlaylist=actb.expandedPlaylist;
         }
         if(saveObject.fader){
           this.fader=saveObject.fader;
@@ -857,6 +1084,47 @@ raBoms = {
         actdurationdiv.innerHTML = lefttime;
         setTimeout("raBoms.showRemainingDuration('"+key+"')",100);
     },
+    expandPlaylist: function(key,value){
+      this.buttons[key].expandedPlaylist = value;
+      if(value)this.buttons[key].getHTMLButton().classList.add("extended");
+      else this.buttons[key].getHTMLButton().classList.remove("extended");
+      this.showFileIndex();
+    },
+    sortableConfig: {
+      //standard-config for Sortable
+      sort:true,
+      handle:".positionchanger",
+      group:"playlist",
+      onEnd: function(evt){
+        console.log("drag event");
+        console.log(evt);
+        if(evt.to === evt.from){
+          //same list, just sort the list:
+          let playlistkey = evt.from.parentElement.id;
+          playlistkey = playlistkey.substring("rpbbid".length);
+          console.log("playlist:"+playlistkey);
+          let actb = raBoms.buttons[playlistkey];
+          let tmp = actb.playlist.splice(evt.oldIndex,1);
+          //actb.playlist[evt.oldIndex] = actb.playlist[evt.newIndex];
+          actb.playlist.splice(evt.newIndex,0,tmp[0]);
+          if(actb.playlistcounter === evt.oldIndex){
+            actb.playlistcounter === evt.newIndex;
+          }else if(actb.playlistcounter === evt.newIndex){
+            actb.playlistcounter++;
+          }else if(actb.playlistcounter < evt.newIndex && actb.playlistcounter > evt.oldIndex){
+            actb.playlistcounter--;
+          }else if(actb.playlistcounter > evt.newIndex && actb.playlistcounter < evt.oldIndex){
+            actb.playlistcounter++;
+          }
+          //actb.setPlaylistTo(actb.playlistcounter);
+          raBoms.showFileIndex();
+          //actb.audio = actb.playlist[actb.playlistcounter].audio;
+          //actb.audio.volume = actb.volume;
+
+        }
+      }
+
+    }
 }
 
 raBoms.microphone = {
@@ -917,6 +1185,7 @@ raBoms.microphone = {
 
 
 window.addEventListener("keydown",function(e){
+  if(e.target.type==="text"||e.target.type==="textarea")return;
   if(e.key==="ArrowDown"){
     raBoms.turnDownAll();
     e.preventDefault();
@@ -930,16 +1199,16 @@ window.addEventListener("keydown",function(e){
     for(var i=0;i<raBoms.playingbuttons.length;i++)raBoms.buttons[raBoms.playingbuttons[i]].playlistNext();
     e.preventDefault();
   }else if(e.key===" " && !(e.target.type &&
-    (e.target.type==="text" || e.target.type==="file") &&
-     e.target.tagName==="INPUT")){
+    (e.target.type==="text" || e.target.type==="text" || e.target.type==="file") &&
+     (e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA") )){
     raBoms.muteToSpeak();
   }
 });
 window.addEventListener("keyup", function(e){
     //console.log(e);
     if(e.target && e.target.type &&
-      (e.target.type==="text" || e.target.type==="file") &&
-       e.target.tagName==="INPUT")return;
+      (e.target.type==="text" ||e.target.type==="textarea"|| e.target.type==="file") &&
+       (e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"))return;
     if(e.key==="Escape"){
         if(raBoms.active)raBoms.stopAll();
         var allshown = document.getElementsByClassName("show");
@@ -1013,6 +1282,7 @@ window.addEventListener("keyup", function(e){
 <div id="fileIndex" class="bgrid">
 
 </div>
+<div id="playlistarea" class="bgrid"></div>
 <div id="newButtonDialog" class="waiting">
     <h2><span class="langen">Add new Button</span><span class="langes">Añadir nuevo boton</span></h2>
     <div id="newButtonKey">
@@ -1026,6 +1296,18 @@ window.addEventListener("keyup", function(e){
       </div>
         <span class="langen">Please select a File</span><span class="langes">Elige el archivo</span>
         <input type="file" id="upload">
+    </div>
+    <div id="playlistSelection">
+      <div>
+          <label>
+            <span class="langen" title="List of full paths to your files, one per line. Example: \n/home/me/musica/effectos/efecto1.mp3\n/home/me/musica/effectos/efecto2">playlistentrys:</span>
+            <span class="langes" title="lista de los archivos para playlist, un archivo por linea.">lista de archivos, una linea por cada archivo, con ruta completa</span>
+          </label><br>
+          <textarea id="playlistByText"></textarea><br>
+      </div>
+        <button onclick="raBoms.finishPlaylist(document.getElementById('playlistByText').value)">
+          <span class="langen">ok</span><span class="langes">importa lista</span>
+        </button>
     </div>
 </div>
 <div id="advancedButtonDialog">
@@ -1277,6 +1559,8 @@ window.addEventListener("keyup", function(e){
   </div>
   <div id="fileManagerLsTarget"></div>
 </div>
+
 </div>
+<div id="storageroom"></div>
 </body>
 </html>

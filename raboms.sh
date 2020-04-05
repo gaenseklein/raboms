@@ -32,13 +32,14 @@ cat $SCRIPTPATH/rutas.cfg | while read line
     done
 rm $SCRIPTPATH/database.raw
 echo "done. starting firefox or chromium"
-if ! [ -x "$(command -v chromium-browser)" ]; then
-    echo "starting firefox"
-    firefox $SCRIPTPATH/src/raboms.html
-    else
-    echo "starting chromium"
-    chromium-browser $SCRIPTPATH/src/raboms.html         
-fi
+#if ! [ -x "$(command -v chromium-browser)" ]; then
+#    echo "starting firefox"
+#    firefox $SCRIPTPATH/src/raboms.html
+#    else
+#    echo "starting chromium"
+#    chromium-browser $SCRIPTPATH/src/raboms.html         
+#fi
+chromium $SCRIPTPATH/src/raboms.html || chromium-browser $SCRIPTPATH/src/raboms.html || firefox $SCRIPTPATH/src/raboms.html
 
 
 

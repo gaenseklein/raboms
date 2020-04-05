@@ -19,15 +19,20 @@ body.langen .langen{
     filter: brightness(0.2);
 }
 
+button, select, input {
+    cursor: pointer;
+}
+
 /*main-grid*/
 
 #rabomswrapper{
   display:grid;
   grid-template-areas:
-  ". buttonarea"
-  "config list";
-  grid-template-rows:auto 1fr;
-  grid-template-columns:auto 1fr;
+  ". buttonarea buttonarea"
+  "config list playlist";
+  grid-template-rows:auto 1fr auto;
+  grid-template-columns:auto 1fr auto;
+
 }
 
 #rabomstitle{grid-area:title;}
@@ -45,7 +50,8 @@ input[type="range"] {
 /*general buttons:*/
 #buttonarea button,
 #config button, #config select,
-.closebutton, .smallbutton {
+.closebutton, .smallbutton,
+#newButtonDialog button {
 	box-shadow:inset 0px 1px 0px 0px #bee2f9;
 	background:linear-gradient(to bottom, #63b8ee 5%, #468ccf 100%);
 	background-color:#63b8ee;
@@ -209,16 +215,13 @@ div#archiveSelection {
 }
 /*mark as played:*/
 .rpbbButton.playedgris {
-  background-image:  linear-gradient(to right, rgba(100,0,0,0.7) 50%, #35353873 50%);
+  /*background-image:  linear-gradient(to right, rgba(100,0,0,0.7) 50%, #35353873 50%);*/
+  background:#35353873;
 }
 div.rpbbButton.playedhide {
   display:none;
 }
 
-/*onloop-background-change:*/
-.rpbbButton.playing.onloop{
-  background-image:linear-gradient(to right, rgba(100,0,0,0.7) 50%, rgba(100,0,0,0.5) 50%);
-}
 
 .buttonKey {
     border-radius: 0.5ch;
@@ -235,21 +238,22 @@ button {
     justify-self: end;
 }
 
+/*with grid:*/
 .bgrid .rpbbButton {
-    width: 30ch;
+    width: 32ch;
     overflow: hidden;
     display: inline-grid;
     grid-template-areas:
-        "devices description description volume"
-        "key description description volume"
-        "key duration duration volume"
-        "groupname checkbox checkbox volume"
-        "groupname . . volume";
-    grid-template-columns:10ch 10ch 5ch 5ch;
+        ". devices description description volume ."
+        ". key description description volume ."
+        ". key duration duration volume ."
+        ". groupname checkbox checkbox volume ."
+        ". groupname . . volume .";
+    grid-template-columns: 0.5ch 10ch 10ch 5ch 5ch 1.5ch;
     height:8em;
     grid-template-rows: 1em 1.5em 2.5em 2.5em 2em;
+    padding:10px 0;
 }
-
 
 .bgrid .buttonKey {
     grid-area: key;
@@ -278,7 +282,7 @@ button {
   grid-area:volume;
   margin-top:10px;
 }
-.bgrid .checkbox{
+.bgrid div.checkbox{
   grid-area:checkbox;
   padding-left:1ch;
 }
@@ -341,17 +345,49 @@ div#advancedButtonDialogDeleteButton {
     grid-area: delete;
 }
 
-/*backgroundanimation*/
-.rpbbButton {
+
+/*new background-animation method:*/
+.bgrid .background {
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  background: rgba(50,0,0,0.3);
+  width: 0%;
+  height: 120%;
+  margin-top: -10%;
+  transition: width 2s linear 0s;
+}
+
+#playlistarea .background {
+  grid-row-end:5;
+}
+
+/*backgroundanimation track*/
+.track {
     background: linear-gradient(to right, rgba(100,0,0,0.7) 50%, transparent 50%);
     background-size: 200% 100%;
     background-position: right top;
     transition: all 2s ease;
 }
+.rpbbButton.playlist.extended{
+  background:white;
+}
 
-.rpbbButton.playing {
+.playing .track.playing {
     background-position: bottom left;
 }
+/*onloop-background-change:*/
+.rpbbButton.playing.onloop{
+  background:rgba(100,0,0,0.5);
+}
+.track.playing{
+  background-image:linear-gradient(to right, rgba(100,0,0,0.7) 50%, rgba(100,0,0,0.5) 50%);
+}
+/*new animation*/
+.bgrid .playing .background{
+  width:100%;
+  background: rgba(100,0,0,0.7);
+}
+/*animation of fade-out of button*/
 .playing button.buttonKey {
     background: linear-gradient(to top, #e85656 50%, transparent 50%);
     background-size: 100% 200%;
@@ -576,6 +612,7 @@ input#configFaderTime, input#configFadeInTime {
   padding-left: 10px;
   overflow-y: auto;
   max-height:100%;
+  min-width: 12ch;
   resize: horizontal;
 }
 #config .closed div,
@@ -616,4 +653,101 @@ div#fileIndex {
 }
 #fileManagerDialog{
   display:none;
+}
+
+.playlistextended{
+    display: none;
+}
+.extended .playlistextended{
+  display:block;
+  grid-area: tracklist;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin:5px;
+  padding:0;
+}
+div.rpbbButton.playlist.extended {
+    height: 16em;
+    grid-template:
+        "devices description description volume"
+        "key description description volume"
+        "key duration duration volume"
+        "groupname checkbox checkbox volume"
+        "groupname . . volume"
+        "tracklist tracklist tracklist tracklist";
+    grid-template-columns: 10ch 10ch 5ch 5ch;
+}
+div#playlistarea{
+  grid-area: playlist;
+}
+div#playlistarea.expanded {
+    box-shadow: inset 0px 3px 7px -5px black;
+    background: #e4e6e7;
+    overflow: auto;
+    height: 100%;
+    border-left: 3px dashed;
+    min-width:30ch;
+}
+
+
+#playlistarea div.rpbbButton.playlist.extended {
+    height: auto;
+    display: inline-grid;
+}
+
+.extended .playlistextended li{
+  display: grid;
+  grid-template-columns: 2ch 1fr 7ch;
+  margin-bottom: 5px;
+  border-top: 1px dashed;
+  border-bottom: 1px dashed;
+}
+.playlistextended button.positionchanger {
+    margin: 0;
+    font-size: xx-large;
+    padding: 0;
+    background: lightblue;
+    border: 1px solid lightgray;
+    width: 1ch;
+}
+.playlistextended button.track {
+    margin: unset;
+    width: 90%;
+    justify-self: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+span.trackduration {
+    align-self: center;
+    justify-self: end;
+    text-align: right;
+}
+
+/*playlist-additions for playlist-Dialog - only
+valid/used if no fileManager is active:*/
+.playlistdialog #playlistSelection{
+  display:block;
+}
+
+.playlistdialog #archiveSelection,
+#playlistSelection,
+.waiting #playlistSelection{
+  display:none;
+}
+div#newButtonDialog.playlistdialog {
+    height: 40em;
+    overflow: auto;
+}
+
+textarea#playlistByText {
+    width: 50ch;
+    height: 30em;
+}
+
+/*temporalmente*/
+.rootButton {
+    width: 10ch;
+    height: 2em;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
