@@ -476,6 +476,8 @@ var fileManager = {
       if(dur){
         let durmin = Math.floor(dur/60000);
         let dursec = Math.floor((dur/1000) - (durmin*60));
+        dursec+="";
+        if(dursec.length===1)dursec = 0+dursec;
         dur = durmin+":"+dursec;
       }
       button.innerText = newList[x].artist+" - "+newList[x].title + " ("+dur+")";
