@@ -1,0 +1,6 @@
+#!/bin/sh
+
+chown root.audio /usr/local/etc/raboms/ -R
+chmod 775 /usr/local/etc/raboms/ -R
+
+

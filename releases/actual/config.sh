@@ -15,7 +15,7 @@ while :
 do
     zentext=`sed 's/&/&amp;/g' $rutas`
     echo $zentext
-    case $(zenity --list --width="600" --height="400" --text="${acttext} \n${zentext}\n\nRecuerda: No es necesario poner cada carpeta aqui. subcarpetas estan buscado igual. \nSi /home/yo/musica esta como ruta, no tiene sentido poner /home/yo/musica/temas. \nLes recomiendo no buscar directo en su carpeta home como eso necesita mucho tiempo." --title="configuración de raboms" --column="opciones" "Añadir nueva ruta" "Borrar ruta" "Iniciar Raboms")  in
+    case $(zenity --list --width="600" --height="400" --text="${acttext} \n${zentext}\n\nRecuerda: No es necesario poner cada carpeta aqui. subcarpetas estan buscado igual. \nSi /home/yo/musica esta como ruta, no tiene sentido poner /home/yo/musica/temas. \nLes recomiendo no buscar directo en su carpeta home como eso necesita mucho tiempo." --title="configuración de raboms" --column="opciones" "Añadir nueva ruta" "Borrar ruta" "Iniciar Raboms" "Iniciar Raboms (re)construyendo base id3")  in
     "Añadir nueva ruta")
         echo "añadir nueva ruta"
         nuevaruta=$(zenity --file-selection --directory)
@@ -48,6 +48,10 @@ do
         ;;
     "Iniciar Raboms")
         sh $SCRIPTPATH/raboms.sh
+        break
+        ;;
+    "Iniciar Raboms (re)construyendo base id3")
+        sh $SCRIPTPATH/raboms-scanid3.sh
         break
         ;;
 

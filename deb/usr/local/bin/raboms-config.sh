@@ -1,8 +1,12 @@
 #!/bin/bash
 # Absolute path to this script, e.g. /home/user/bin/foo.sh
-SCRIPT=$(readlink -f "$0")
+#SCRIPT=$(readlink -f "$0")
 # Absolute path this script is in, thus /home/user/bin
-SCRIPTPATH=$(dirname "$SCRIPT")
+#SCRIPTPATH=$(dirname "$SCRIPT")
+
+## Agregado para funcionar con paquete deb
+SCRIPT="/usr/local/bin/$0"
+SCRIPTPATH="/usr/local/etc/raboms"
 
 rutas=$SCRIPTPATH/rutas.cfg
 acttext="rutas actuales"

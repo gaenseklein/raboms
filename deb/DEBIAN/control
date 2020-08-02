@@ -1,0 +1,27 @@
+Package: raboms
+Version: 0.7.5
+Priority: optional
+Section: sound
+Maintainer: gaenseklein <raboms@gaenseklein.net>
+Installed-Size: 750
+Architecture: all
+Depends: chromium | firefox | firefox-esr | chrome, zenity, mediainfo
+Homepage: https://github.com/gaenseklein/raboms
+Description: Botonera de radio muy simple
+ raboms es una botonera para radios, creado 
+ para la comunidad de radio-y-software-libre, 
+ hecho simple con html5 y javascript.
+ .
+ El gól de ese programa es facilitar a radios 
+ comunitarias que quieren hacer programas en 
+ vivo con una botonera, tener una opción facil 
+ y liviano. 
+ Primero intentamos hasta donde podemos llegar 
+ asi no más con puro html y javascript, en el 
+ futuro quizás usar electron para unas 
+ configuraciones mas avanzadas y evitar los 
+ problemas de Javascript con datos locales.
+ .
+ raboms es desarrollado por gaenseklein <raboms@gaenseklein.net>
+ y empaquetado por Javier Obregon jobregon@protonmail.com para EterTICs GNU/Linux.
+
