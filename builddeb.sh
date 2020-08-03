@@ -18,7 +18,9 @@ find usr -type f -exec md5sum {} + > DEBIAN/md5sums
 cd ..
 
 dpkg -b deb/ raboms_nuevaversion_all.deb
+md5sum raboms_nuevaversion_all.deb > raboms_nuevaversion_all.md5
 
  chown -R ${SUDO_USER}:${SUDO_USER} deb
  chown -R ${SUDO_USER}:${SUDO_USER} raboms_nuevaversion_all.deb
+ chown -R ${SUDO_USER}:${SUDO_USER} raboms_nuevaversion_all.md5
  chmod -R u+rwX deb
