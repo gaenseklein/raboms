@@ -1,5 +1,5 @@
-062a4c9805bdaf242e1e38eaafd37a3d  usr/share/applications/rabomsConfig.desktop
-db90d4c8f81220ed22bec4ab14d095c8  usr/share/applications/raboms.desktop
+808d4e8c7a608f86a16cc344fb6f553b  usr/share/applications/rabomsConfig.desktop
+c9b5d64bb645d9beb5691ea8c8d6fd87  usr/share/applications/raboms.desktop
 a4504308a520d178aba7dd970daf4eb1  usr/share/icons/raboms/icon.png
 abc2f06805549a4c10d3f4efde124e20  usr/share/doc/raboms/README.md
 1ebbd3e34237af26da5dc08a4e440464  usr/share/doc/raboms/LICENSE
@@ -15,5 +15,5 @@ afe7d5a3108b0d042903f34b432936e8  usr/share/raboms/src/images/logosmall.0.1.png
 38a3e1dab3cfc936480d085ce53f3387  usr/share/raboms/src/Sortable.js
 da99b689727fbe8105746913539637a5  usr/share/raboms/mediainfo.cfg
 a8885909e616bd712f88c1377fc50244  usr/bin/raboms-scanid3
-7415c0445317b67cf803171fde105557  usr/bin/raboms-config
+67e0ba59bc99a271dd089a98a941907d  usr/bin/raboms-config
 426d8e8a76908abc02debced05d734ea  usr/bin/raboms

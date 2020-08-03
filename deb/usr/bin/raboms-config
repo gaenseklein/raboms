@@ -51,11 +51,11 @@ do
             rm $rutas.old
         ;;
     "Iniciar Raboms")
-        sh $SCRIPTPATH/raboms
+        sh $SCRIPT/raboms # Modificado en .deb se reemplaza SCRIPTPATH por SCRIPT
         break
         ;;
     "Iniciar Raboms (re)construyendo base id3")
-        sh $SCRIPTPATH/raboms-scanid3
+        sh $SCRIPT/raboms-scanid3 # Modificado en .deb se reemplaza SCRIPTPATH por SCRIPT
         break
         ;;
 
