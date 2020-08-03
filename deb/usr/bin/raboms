@@ -5,8 +5,8 @@
 #SCRIPTPATH=$(dirname "$SCRIPT")
 
 ## Agregado para funcionar con paquete deb
-SCRIPT="/usr/local/bin/$0"
-SCRIPTPATH="/usr/local/etc/raboms"
+SCRIPT="/usr/bin/$0"
+SCRIPTPATH="/usr/share/raboms"
 
 
 echo generando base de datos

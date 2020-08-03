@@ -5,8 +5,8 @@
 #SCRIPTPATH=$(dirname "$SCRIPT")
 
 ## Agregado para funcionar con paquete deb
-SCRIPT="/usr/local/bin/$0"
-SCRIPTPATH="/usr/local/etc/raboms"
+SCRIPT="/usr/bin/$0"
+SCRIPTPATH="/usr/share/raboms"
 
 rutas=$SCRIPTPATH/rutas.cfg
 acttext="rutas actuales"
@@ -51,11 +51,11 @@ do
             rm $rutas.old
         ;;
     "Iniciar Raboms")
-        sh $SCRIPTPATH/raboms.sh
+        sh $SCRIPTPATH/raboms
         break
         ;;
     "Iniciar Raboms (re)construyendo base id3")
-        sh $SCRIPTPATH/raboms-scanid3.sh
+        sh $SCRIPTPATH/raboms-scanid3
         break
         ;;
 

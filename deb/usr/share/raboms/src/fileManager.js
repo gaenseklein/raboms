@@ -338,6 +338,7 @@ var fileManager = {
     this.id3ViewForm.genre=null;
     this.id3ViewForm.artist=null;
     this.id3ViewForm.search="";
+    this.id3ViewForm.album=null;
     this.renderId3GenreArtistSelection();
     this.updateId3View();
   },
@@ -427,6 +428,7 @@ var fileManager = {
     let newList = new Array();
     let artist = this.id3ViewForm.artist;
     let genre = this.id3ViewForm.genre;
+    let album = this.id3ViewForm.album;
     let search = this.id3ViewForm.search;
     let db = this.id3database.id3tags;
     for(var x=0;x<db.length;x++){
@@ -435,6 +437,7 @@ var fileManager = {
 
       if((artist===null || (act.artist !=undefined && act.artist==artist))&&
         (genre===null || (act.genre!=undefined && act.genre.indexOf(genre)>-1))&&
+        (album===null || (act.album!=undefined && act.album.indexOf(album)>-1))&&
         (search===null || search==="" || actsearchstring.indexOf(search)>-1)){
         newList.push(act);
       }
@@ -476,6 +479,8 @@ var fileManager = {
       if(dur){
         let durmin = Math.floor(dur/60000);
         let dursec = Math.floor((dur/1000) - (durmin*60));
+        dursec+="";
+        if(dursec.length===1)dursec = 0+dursec;
         dur = durmin+":"+dursec;
       }
       button.innerText = newList[x].artist+" - "+newList[x].title + " ("+dur+")";
