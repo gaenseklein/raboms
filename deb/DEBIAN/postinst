@@ -1,6 +1,17 @@
 #!/bin/sh
 
-chown root.audio /usr/local/etc/raboms/ -R
-chmod 775 /usr/local/etc/raboms/ -R
+set -e
 
+## Cambio de propiedad sin usar recursividad para compatibilidad con lintian
+## https://lintian.debian.org/tags/maintainer-script-should-not-use-recursive-chown-or-chmod.html
+chown root:audio /usr/share/raboms/
+chown root:audio /usr/share/raboms/*
+chown root:audio /usr/share/raboms/src/*
+chown root:audio /usr/share/raboms/src/images/*
+## Cambio de permisos sin usar recursividad para compatibilidad con lintian
+## https://lintian.debian.org/tags/maintainer-script-should-not-use-recursive-chown-or-chmod.html
+chmod 775 /usr/share/raboms/
+chmod 775 /usr/share/raboms/*
+chmod 775 /usr/share/raboms/src/*
+chmod 775 /usr/share/raboms/src/images/*
 

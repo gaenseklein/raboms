@@ -1,9 +1,9 @@
 Package: raboms
-Version: 0.7.5
+Version: 0.8
 Priority: optional
 Section: sound
 Maintainer: gaenseklein <raboms@gaenseklein.net>
-Installed-Size: 750
+Installed-Size: 1250
 Architecture: all
 Depends: chromium | firefox | firefox-esr | chrome, zenity, mediainfo
 Homepage: https://github.com/gaenseklein/raboms
