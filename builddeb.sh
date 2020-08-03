@@ -17,10 +17,17 @@ cd deb
 find usr -type f -exec md5sum {} + > DEBIAN/md5sums
 cd ..
 
-dpkg -b deb/ raboms_nuevaversion_all.deb
-md5sum raboms_nuevaversion_all.deb > raboms_nuevaversion_all.md5
+## Busca versión paquete ##
+if [ -f deb/DEBIAN/control ]; then
+        RVER=$(cat deb/DEBIAN/control | grep -i version | awk -F":" '{print $2}' | tr -d ' ')
+else
+        RVER="nuevaversion"
+fi
+
+dpkg -b deb/ "raboms_"$RVER"_all.deb"
+md5sum "raboms_"$RVER"_all.deb" > "raboms_"$RVER"_all.md5"
 
  chown -R ${SUDO_USER}:${SUDO_USER} deb
- chown -R ${SUDO_USER}:${SUDO_USER} raboms_nuevaversion_all.deb
- chown -R ${SUDO_USER}:${SUDO_USER} raboms_nuevaversion_all.md5
+ chown -R ${SUDO_USER}:${SUDO_USER} "raboms_"$RVER"_all.deb"
+ chown -R ${SUDO_USER}:${SUDO_USER} "raboms_"$RVER"_all.md5"
  chmod -R u+rwX deb
