@@ -1,4 +1,5 @@
 cp -R src deb/usr/share/raboms/
+cp mediainfo.cfg deb/usr/share/raboms/
 
 #TODO: also copy/check start-scripts and patch them
 
@@ -19,4 +20,5 @@ cd ..
 dpkg -b deb/ raboms_nuevaversion_all.deb
 
  chown -R ${SUDO_USER}:${SUDO_USER} deb
+ chown -R ${SUDO_USER}:${SUDO_USER} raboms_nuevaversion_all.deb
  chmod -R u+rwX deb
