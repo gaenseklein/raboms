@@ -116,7 +116,7 @@ var fileManager = {
     wrapper.classList.add("fileManagerLsWrapper");
     var dir = document.createElement("ul");
     dir.classList.add("fileManagerLsDir");
-    //directory.dirlist.sort(function(a,b){if(a.basepath < b.basepath)return 1; else return -1});
+    directory.dirlist.sort(function(a,b){if(a.toUpperCase()<b.toUpperCase())return -1; else return 1});
     for(var x=0;x<directory.dirlist.length;x++){
       var li = document.createElement("li");
       var button = document.createElement("button");
@@ -129,6 +129,7 @@ var fileManager = {
     wrapper.appendChild(dir);
     var files = document.createElement("ul");
     files.classList.add("fileManagerLsFiles");
+    directory.files.sort(function(a,b){if(a.filename<b.filename)return -1; else return 1;});
     for(var x=0;x<directory.files.length;x++){
       var li=document.createElement("li");
       var button = document.createElement("button");
