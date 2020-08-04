@@ -34,7 +34,7 @@ Gracias a Javier Obregon hay una versión de paquete .deb que se puede instalar 
 La siguiente versión de gnu-etertics ya viene con raboms pre-instalado.
 Todos demás pueden eligir la versión más reciente en .deb e instalarlo directo en su sistema desde la carpeta [releases](releases/).
 
-*Ojo: antes que instalar la .deb borra las entradas del menu si instalaste con git* 
+*Ojo: antes que instalar la .deb borra las entradas del menu si instalaste con git*
 
 ## todos demas / sin filemanager
 Se puede instalar tambien con git en sistemas de windows y mac para tener la versión dev - que es recomendado, como es lo más actual.
@@ -185,9 +185,9 @@ Puedes hacer unas cosas:
 
 # Roadmap e ideas: que voy a incorporar en las proximas versiones
 
-1. poder cambiar los nombres del botón de forma manual para evitar problemas con nombres de archivos cripticos o muy largos
-2. buscar medios por su duración en el menú de informaciones meta
-3. eligir el sorteo de los canciones en el menú de informaciones meta (actualmente esta siempre sorteado por primero artista, segundo titulo - sea bien sortear tambien por duración, disco etc.)
+
+1. buscar medios por su duración en el menú de informaciones meta
+2. eligir el sorteo de los canciones en el menú de informaciones meta (actualmente esta siempre sorteado por primero artista, segundo titulo - sea bien sortear tambien por duración, disco etc.)
 
 # Disfrutalo no más :)
 

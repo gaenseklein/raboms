@@ -102,7 +102,7 @@ var fileManager = {
       patharr.push(path.substring(0,actpp+1));
       actpp = path.indexOf("/",actpp+1);
     }
-    console.log(patharr);
+    //console.log(patharr);
     for(var x=0;x<patharr.length;x++){
       var pb = document.createElement("button");
       if(patharr[x]===rootpath)pb.classList.add("activeRoot");
@@ -116,12 +116,14 @@ var fileManager = {
     wrapper.classList.add("fileManagerLsWrapper");
     var dir = document.createElement("ul");
     dir.classList.add("fileManagerLsDir");
-    //directory.dirlist.sort(function(a,b){if(a.basepath < b.basepath)return 1; else return -1});
-    for(var x=0;x<directory.dirlist.length;x++){
+    //directory.dirlist.sort(function(a,b){if(a.toUpperCase()<b.toUpperCase())return -1; else return 1});
+    directory.dirlistSorted = directory.dirlist.slice().sort(function(a,b){if(a.toUpperCase()<b.toUpperCase())return -1; else return 1});
+    console.log(directory.dirlist, directory.dirlistSorted);
+    for(var x=0;x<directory.dirlistSorted.length;x++){
       var li = document.createElement("li");
       var button = document.createElement("button");
-      button.innerText = "📁 | "+directory.dirlist[x];
-      button.value=directory.basepath+directory.dirlist[x];
+      button.innerText = "📁 | "+directory.dirlistSorted[x];
+      button.value=directory.basepath+directory.dirlistSorted[x];
       button.onclick = function(){fileManager.lsPath(this.value)};
       li.appendChild(button);
       dir.appendChild(li);
@@ -129,6 +131,7 @@ var fileManager = {
     wrapper.appendChild(dir);
     var files = document.createElement("ul");
     files.classList.add("fileManagerLsFiles");
+    directory.files.sort(function(a,b){if(a.filename.toUpperCase()<b.filename.toUpperCase())return -1; else return 1;});
     for(var x=0;x<directory.files.length;x++){
       var li=document.createElement("li");
       var button = document.createElement("button");

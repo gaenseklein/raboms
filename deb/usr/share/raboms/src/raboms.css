@@ -225,6 +225,14 @@ div#archiveSelection {
     margin-bottom: auto;
 }
 
+button.audiotitle {
+    border: none;
+    margin: 0;
+    padding: 0;
+    word-break: break-word;
+    background: none;
+}
+
 .hidden {
     display: none;
 }
@@ -508,10 +516,6 @@ div#fileManagerDialog.show{
 .fileManagerFiles{grid-area:files;}
 .fileManagerLsPath{grid-area:path;}
 */
-.fileManagerLsWrapper {
-    overflow-y: scroll;
-    height: 70vh;
-}
 div#fileManagerDialog{
   height:85vh;
   top:7vh;
@@ -534,7 +538,9 @@ span#fileManagerButtonKey {
     font-size: large;
 }
 
-div#fileManagerLsTarget {}
+div#fileManagerLsTarget {
+  overflow-y: scroll;
+}
 
 .fileManagerLsPath .roots{
   display:inline-grid;
@@ -645,27 +651,28 @@ input#fileManagerId3Search {
     height: 2em;
     width: 100%;
 }
-
+#fileManagerDialog.filename.show,
 #fileManagerDialog.id3.show{
   display:grid;
   grid-template-areas:
   "title title"
   "dialogchoice dialogchoice"
-  "id3 playlist";
+  "ls playlist";
   grid-template-rows:auto 2em 1fr;
   grid-template-columns:3fr 1fr;
 }
-#fileManagerDialog.id3 #fileManagerPlaylistArea{
+#fileManagerDialog #fileManagerPlaylistArea{
   grid-area:playlist;
 }
-#fileManagerDialog.id3 #fileManagerViewTypeChoice{
+#fileManagerDialog #fileManagerViewTypeChoice{
   grid-area:dialogchoice;
 }
-#fileManagerDialog.id3 h1{
+#fileManagerDialog h1{
   grid-area:title;
 }
-#fileManagerId3Target{
-  grid-area:id3;
+#fileManagerId3Target,
+#fileManagerLsTarget{
+  grid-area:ls;
   display: grid;
   grid-template-rows:auto 1fr;
 }
