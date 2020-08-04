@@ -34,6 +34,8 @@ Gracias a Javier Obregon hay una versión de paquete .deb que se puede instalar 
 La siguiente versión de gnu-etertics ya viene con raboms pre-instalado.
 Todos demás pueden eligir la versión más reciente en .deb e instalarlo directo en su sistema desde la carpeta [releases](releases/).
 
+*Ojo: antes que instalar la .deb borra las entradas del menu si instalaste con git* 
+
 ## todos demas / sin filemanager
 Se puede instalar tambien con git en sistemas de windows y mac para tener la versión dev - que es recomendado, como es lo más actual.
 Además hay releases en la carpeta "releases", si algo no funciona y quieres ver si una versión anterior te sirve mejor.
@@ -54,6 +56,8 @@ git pull
 Listo. Puedes cerrar el terminal. Despues abre tu raboms como lo estas acostumbrado.
 
 Si no instalaste raboms por git, pero guardando el archivo, simplemente reemplaza tu directorio con el nuevo archivo.
+
+Si instalaste con paquete .deb o usas la nueva version de etertics con raboms preinstalado guarda la ultima version desde [release](releases) en paquete .deb (y el md5 si quieres chequear que todo se transimtió bien) y actualizalo con este paquete.
 
 # el filemanager de raboms (solo linux?)
 El camino de programar raboms con javascript solo tiene una desventaja grande: Javascript - o mejor el navegador - no tiene accesso completo a tu sistema de archivos. Por eso en la version sin filemanager (todos no usuarios de linux) lo tienes que escribir la ruta completa a la carpeta donde esta el archivo que quieres usar para un boton.
@@ -129,12 +133,18 @@ Si alguien encuentra una solución como activarlo por favor escribanme y lo pong
 
 ## Donde esta el .deb o el repositorio para instalar raboms?
 
-Todavia no hago .deb ni tengo un repositorio para instalar y actualizar raboms. Usamos *git* para hacerlo. Como es tan liviano hasta ahora no veo ningun problema con eso. Es facil. Mire en "como instalar". No necesitas "root" para instalar raboms tampoco.
+El .deb con la ultima version se encuentra bajo [releases](releases). Un repositorio no hay todavia.
+Si instales etertics, la nueva version ya va a venir con raboms preinstalado.
+
+## hay .rpm?
+No. El .deb lo hacemos para etertics, la distribución de nuestra comunidad. No hay planes para otros sistemas operativas.  
+Igual, como usamos *git* y es tan liviano hasta ahora no veo ningun problema usar *git* para instalar y actualizar. Es facil. Mire en "como instalar". No necesitas "root" para instalar raboms tampoco.
 
 ## Como puedo desinstalarlo?
 
-Como no usamos ni apt ni otro gestionador de paquetes no hay un proceso especifico de desinstalación. Borra la carpeta de raboms y las entradas de tu menú y ya esta borrado totalmente.
+Si no instalaste el .deb no hay un proceso especifico de desinstalación. Borra la carpeta de raboms y las entradas de tu menú y ya esta borrado totalmente.
 Si instalaste con git como esta escrito arriba en la sección de instalación, la carpeta de raboms esta en tu home.
+Si instalaste por paquete .deb lo desinstales como lo estas acostumbrado - con tu gestionador de paquetes preferido o dpkg o apt...
 
 ## Se puede usar raboms en 32 bit o solo 64 bit?
 

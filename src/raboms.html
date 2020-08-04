@@ -11,7 +11,7 @@
 <script src="../database.js"></script>
 <script src="../databaseid3.js"></script>
 <script>
-version = "0.8";
+version = "0.8.1";
 
 function pBB(button, audiosource, bpath, audioname){
     this.button = button;
@@ -237,7 +237,11 @@ raBoms = {
       let title = name;
       if(name===undefined && fileManager && fileManager.id3database){
         let id3=fileManager.id3database.getTagsOfFile(bpath+audiosource);
-        if(id3)title=id3.artist+" - "+id3.title;
+        if(id3){
+          title=id3.artist
+          if(title==="unknown")title="";else title+=" - ";
+          title+=id3.title;
+          }
         if(title && title.length<5)title=undefined;
       }
         this.buttons[button] = new pBB(button,audiosource, bpath, title);
@@ -380,8 +384,13 @@ raBoms = {
         var nbd = document.getElementById("newButtonDialog");
         nbd.classList.remove("show");
         let name = null;
-        if(fileManager && fileManager.id3database)name=fileManager.id3database.getTagsOfFile(basepath+filename);
-        if(name)name=name.artist+": "+name.title;
+        let tags = null;
+        if(fileManager && fileManager.id3database)tags=fileManager.id3database.getTagsOfFile(basepath+filename);
+        if(tags){
+          if(tags.artist!="unknown")name = tags.artist + " - ";
+          else name = "";
+          name+=tags.title;
+        }
         this.addButton(this.temporaryButton.key,filename,basepath,name);
         this.active = true;
         this.temporaryButton = null;
@@ -420,6 +429,15 @@ raBoms = {
         this.buttons = {};
         this.showFileIndex();
       }
+    },
+    changeAudioTitle:function(key){
+      let actb = this.buttons[key];
+      let prompttext = "change title? actual title:\n";
+      if(document.body.classList.contains("langes"))prompttext="quieres cambiar el titulo? titulo actual:";
+      prompttext+=actb.audiotitle;
+      let newtitle = prompt(prompttext);
+      if(newtitle)actb.audiotitle=newtitle;
+      this.showFileIndex();
     },
     setVolume:function(button,volume){
         if(this.buttons[button]){
@@ -494,6 +512,8 @@ raBoms = {
             //if(!fidiv && x===0)alert("estoy afuera");
             var audiosource = raBoms.buttons[key].audiosource;
             var audioname = raBoms.buttons[key].audiotitle || raBoms.buttons[key].audioname;
+            //set standard-button for audiotitle-change:
+            audioname = '<button class="audiotitle" ondblclick="raBoms.changeAudioTitle(\''+key+'\')">'+audioname+'</button>';
             var loop = raBoms.buttons[key].loop;
             var cssclasses = "";
             var playlistextendedhtml="";
@@ -1656,7 +1676,7 @@ window.addEventListener("keyup", function(e){
     <div class="searchoption">
       <h3>
         <span class="langen">Search</span>
-        <span class="langes">busca</span>
+        <span class="langes">buscar</span>
       </h3>
       <input type="text" id="fileManagerId3Search" value="" onkeyup="fileManager.id3ViewForm.search=this.value;fileManager.updateId3View();">
     </div>
