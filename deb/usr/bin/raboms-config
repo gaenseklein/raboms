@@ -5,7 +5,7 @@
 #SCRIPTPATH=$(dirname "$SCRIPT")
 
 ## Agregado para funcionar con paquete deb
-SCRIPT="/usr/bin/$0"
+SCRIPT="/usr/bin/"
 SCRIPTPATH="/usr/share/raboms"
 
 rutas=$SCRIPTPATH/rutas.cfg

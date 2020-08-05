@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Terminal=true
-Name=Configuración de raboms
+Name=raboms - Configuración
 Categories=AudioVideo;Player;
 Icon=/usr/share/icons/raboms/icon.png
 Exec=sh /usr/bin/raboms-config
