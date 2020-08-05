@@ -31,10 +31,40 @@ despues de eso puedes eligir si quieres abrir la configuración para configurar 
 ## linux -> deb
 
 Gracias a Javier Obregon hay una versión de paquete .deb que se puede instalar en cualquier sistema a base de debian/devuan como debian, ubuntu, linux mint y obviamente con lo recomendado para radios: gnu-etertics.
-La siguiente versión de gnu-etertics ya viene con raboms pre-instalado.
-Todos demás pueden eligir la versión más reciente en .deb e instalarlo directo en su sistema desde la carpeta [releases](releases/).
+La siguiente versión de gnu-etertics ya viene con raboms pre-instalado y configurado para actualizar automatico desde el repositorio de raboms.
 
-*Ojo: antes que instalar la .deb borra las entradas del menu si instalaste con git*
+Si quieres instalar raboms por apt en otro sistema tienes que hacer los siguientes pasos en terminal como root (o con sudo adelante, depende de tu sistema):
+Primero instalate el key del repositorio:
+```
+wget -q -O - https://raboms.gaenseklein.net/debian/KEY.gpg | apt-key add -
+```
+o con sudo:
+```
+sudo wget -q -O - https://raboms.gaenseklein.net/debian/KEY.gpg | sudo apt-key add -
+```
+
+Despues hay que entrar la siguiente entrada a tu lista de sources:
+```
+deb https://raboms.gaenseklein.net/debian/ /
+```
+Lo puedes hacer con tu gestionador de paquetes grafico si prefieres o en terminal:
+En muchos derivatos de debian (etertics, linux mint...) se puede hacer una entrada en un extra-archivo - eso es recomendado. lo puedes hacer desde tu terminal con una linea si quieres:
+ *si sos usuario de sudo pongas un sudo en frente a la linea*
+```
+echo "deb https://raboms.gaenseklein.net/debian/ /" > /etc/apt/sources.list.d/raboms.list
+```
+
+
+Listo. Ahora puedes instalar raboms. Otra vez si prefieres puedes usar tu gestionador de paquetes grafico o pongas en terminal las siguientes lineas:
+*si sos usuario de sudo pongas un sudo en frente a cada linea*
+```
+apt-get update
+apt-get install raboms
+```
+
+raboms esta instalado ahora en tu sistema y se actualiza ahora por apt como cualquier otro programa.
+
+ ***Ojo: antes que instalar la .deb borra las entradas del menu si instalaste con git***
 
 ## todos demas / sin filemanager
 Se puede instalar tambien con git en sistemas de windows y mac para tener la versión dev - que es recomendado, como es lo más actual.
@@ -57,7 +87,9 @@ Listo. Puedes cerrar el terminal. Despues abre tu raboms como lo estas acostumbr
 
 Si no instalaste raboms por git, pero guardando el archivo, simplemente reemplaza tu directorio con el nuevo archivo.
 
-Si instalaste con paquete .deb o usas la nueva version de etertics con raboms preinstalado guarda la ultima version desde [release](releases) en paquete .deb (y el md5 si quieres chequear que todo se transimtió bien) y actualizalo con este paquete.
+Si instalaste con paquete .deb de mano puedes bajar la nueva version desde el [repositorio de raboms](https://raboms.gaenseklein.net/debian).
+
+Y si estas usando el repositorio directo haga un "apt-get update; apt-get install raboms" - o actualizalo junto con todos paquetes.
 
 # el filemanager de raboms (solo linux?)
 El camino de programar raboms con javascript solo tiene una desventaja grande: Javascript - o mejor el navegador - no tiene accesso completo a tu sistema de archivos. Por eso en la version sin filemanager (todos no usuarios de linux) lo tienes que escribir la ruta completa a la carpeta donde esta el archivo que quieres usar para un boton.
@@ -74,7 +106,7 @@ Se puede configurar de dos formas:
 2. editando el archivo "rutas.cfg" con un editor de texto como xed, pluma, leaf, nano o que te gusta.
 
 ### el script config
-Si instalaste con el script install.sh solo elige "configuracion de rambos" de tu menu.
+Si instalaste con el script install.sh o del deb/repositorio debian solo elige "rambos - configuración" de tu menu.
 Si no hay la entrada en tu menu abre un terminal y ponga
 ```
 sh raboms/config.sh
@@ -133,8 +165,8 @@ Si alguien encuentra una solución como activarlo por favor escribanme y lo pong
 
 ## Donde esta el .deb o el repositorio para instalar raboms?
 
-El .deb con la ultima version se encuentra bajo [releases](releases). Un repositorio no hay todavia.
-Si instales etertics, la nueva version ya va a venir con raboms preinstalado.
+El repositorio de raboms esta ahora en https://raboms.gaenseklein.net/debian/, ahi encuentras todos versiones debs de raboms.
+Ve ##linux->deb para instrucciones como configurar para usar el repositorio
 
 ## hay .rpm?
 No. El .deb lo hacemos para etertics, la distribución de nuestra comunidad. No hay planes para otros sistemas operativas.  
@@ -143,7 +175,15 @@ Igual, como usamos *git* y es tan liviano hasta ahora no veo ningun problema usa
 ## Como puedo desinstalarlo?
 
 Si no instalaste el .deb no hay un proceso especifico de desinstalación. Borra la carpeta de raboms y las entradas de tu menú y ya esta borrado totalmente.
+Si no sabes como borrar las entradas del menu de mano puedes abrir un terminal y poner
+```
+mv $HOME/.local/share/applications/raboms.desktop /tmp/
+mv $HOME/.local/share/applications/raBomsConfig.desktop /tmp/
+```
+ahora estan en tu carpeta temporal. puedes borrarles de alli o se borra al proximo reinicio de tu compu.
+
 Si instalaste con git como esta escrito arriba en la sección de instalación, la carpeta de raboms esta en tu home.
+
 Si instalaste por paquete .deb lo desinstales como lo estas acostumbrado - con tu gestionador de paquetes preferido o dpkg o apt...
 
 ## Se puede usar raboms en 32 bit o solo 64 bit?
@@ -156,10 +196,12 @@ raboms por su mismo debe funcionar en cualquier navegador que suporte javascript
 1. find
 2. grep
 3. echo
-4. navegador moderno (firefox o chromium)
+4. navegador moderno (firefox o chromium, si no intenta con lo que hay)
 5. git (solo para actualizar e instalar desde zero)
 6. zenity (para el script de instalación y configuración)
 7. mediainfo (para incorporar informaciones de id3)
+
+si instales de version deb se instale todas dependencias automatico.
 
 ## Lo abrí el raboms, pero no pasa nada. Ni puedo cerrar la ventana de ayuda inicial
 
