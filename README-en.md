@@ -31,6 +31,7 @@ after that (on linux) you can run the install-script to place starters in your s
 ```
 sh raboms/install.sh
 ```
+else you can start raboms with `sh raboms/raboms.sh` and the (english) config with `sh raboms/raboms-config-en.sh`
 
 ## deb
 without sudo, but as root: (etertics...)
@@ -52,3 +53,12 @@ now as root or with sudo in front you can install raboms with:
 apt-get update
 apt-get install raboms
 ```
+
+# filemanager
+
+As browsers dont have direct access to your filesystem we have to let raboms know where your mp3-files are stored. therefore a shell-script runs before the start of raboms to search for all mp3 and ogg files stored in the selected directorys and its subdirectorys.
+this part you can configure via a script - the config-script.
+As this process is rather fast if you dont let it search for your whole disc (like putting /home as starting point) we run it every time on startup.
+Searching for id3-tags is more time-consuming so it should be started manualy once and every time you add new files you want to use and find via id3-tag.
+you can do that by starting raboms via terminal
+(`sh ~/raboms/raboms-scanid3.sh` if installed by git or simply `raboms-scanid3` if you installed the debian package) or select the last option in the configuration-dialog.  
