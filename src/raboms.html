@@ -4,8 +4,8 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <title>raBoms</title>
-<link rel="shortcut icon" href="../icon.ico" type="image/x-icon" />
-<link rel="icon" href="../icon.ico" type="image/x-icon" />
+<link rel="shortcut icon" href="images/icon.ico" type="image/x-icon" />
+<link rel="icon" href="images/icon.ico" type="image/x-icon" />
 <link rel="stylesheet" href="raboms.css">
 <script src="FileSaver.js"></script>
 <script src="Sortable.js"></script>
@@ -705,6 +705,13 @@ raBoms = {
 
     },
     saveToCache:function(projectname){
+        if(this.localStorageTest===undefined)try{
+          var test = window.localStorage
+        }catch(err){
+          alert("tienes que configurar tu navegador para dar accesso al localStorage:\n en chrome: https://www.chromium.org/for-testers/bug-reporting-guidelines/uncaught-securityerror-failed-to-read-the-localstorage-property-from-window-access-is-denied-for-this-document\n\nen corto: abre chromium y ahi la url chrome://settings/content - en 'Cookies' desactiva 'block third party cookies'.")
+          this.localStorageTest=false;
+        }
+        if(this.localStorageTest===false)return;
         var saveObject = JSON.stringify(this.buttons);
         var saveConfig = {
           fader:this.fader,
@@ -728,6 +735,13 @@ raBoms = {
         window.localStorage.setItem("radioPBBconfig",saveConfig);
     },
     loadFromCache:function(projectname){
+      if(this.localStorageTest===undefined)try{
+        var test = window.localStorage
+      }catch(err){
+        alert("tienes que configurar tu navegador para dar accesso al localStorage:\n en chrome: https://www.chromium.org/for-testers/bug-reporting-guidelines/uncaught-securityerror-failed-to-read-the-localstorage-property-from-window-access-is-denied-for-this-document\n\nen corto: abre chromium y ahi la url chrome://settings/content - en 'Cookies' desactiva 'block third party cookies'.")
+        this.localStorageTest=false;
+      }
+      if(this.localStorageTest===false)return;
       var configstring = window.localStorage.getItem("radioPBBconfig");
         var basepath = window.localStorage.getItem("radioPBBbasepath");
         if(basepath)document.getElementById("basepath").value = basepath;
