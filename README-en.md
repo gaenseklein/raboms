@@ -62,3 +62,14 @@ As this process is rather fast if you dont let it search for your whole disc (li
 Searching for id3-tags is more time-consuming so it should be started manualy once and every time you add new files you want to use and find via id3-tag.
 you can do that by starting raboms via terminal
 (`sh ~/raboms/raboms-scanid3.sh` if installed by git or simply `raboms-scanid3` if you installed the debian package) or select the last option in the configuration-dialog.  
+
+# dependencys:
+
+if you install via debian-package all dependencys will be met by apt.
+if you install via git and want to use id3-tags you should make shure to install `mediainfo`
+
+# browser-support:
+
+raboms should run in every modern browser. nevertheless its recommend using chromium, as it supports an app-mode, which allows raboms to apear more like a normal program with own icon in your taskbar and without navigation-overhead (tabs, url...)
+if you have chromium installed the startup-script will run raboms as an app in chromium, if not it intends to use firefox in a new window and if even firefox is not installed it tries x-www-browser (or your "main" browser).
+development is done for chromium and firefox. 
