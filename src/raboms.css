@@ -284,6 +284,8 @@ div.rpbbButton.playedhide {
 button {
     border-radius: 7px;
     margin: 5px;
+    color: black;
+    background: whitesmoke;
 }
 .buttonDuration {
     min-width: 14ch;
@@ -304,7 +306,7 @@ button {
         ". groupname . . volume .";
     grid-template-columns: 0.5ch 10ch 10ch 5ch 5ch 1.5ch;
     height:8em;
-    grid-template-rows: 1em 1.5em 2.5em 2.5em 2em;
+    grid-template-rows: 1em 2em 2.5em 2.5em 2em;
     padding:10px 0;
 }
 

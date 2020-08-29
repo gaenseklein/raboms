@@ -55,11 +55,25 @@ if [ -z $NAVEGADOR ]; then
                 NAVEGADOR="x-www-browser"
             fi
         fi
-    fi
+   fi
 fi
+
+case "$NAVEGADOR" in 
+    *chromium*)    
+    echo "usando chromium como app:"
+    NAVEGADOR=$NAVEGADOR" --app=file:///${SCRIPTPATH}/src/raboms.html"
+    $NAVEGADOR
+    exit 0
+    ;;
+    *firefox*)
+    echo "usando firefox en nueva ventana:"
+    NAVEGADOR=$NAVEGADOR" -new-window ${SCRIPTPATH}/src/raboms.html"
+    $NAVEGADOR
+    exit 0
+    ;;  
+esac
+
+# si no es firefox ni chromium abre x-www-browser:
 if [ ! -z $NAVEGADOR ]; then
     $NAVEGADOR $SCRIPTPATH/src/raboms.html
 fi
-
-
-

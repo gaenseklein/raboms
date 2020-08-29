@@ -1,11 +1,11 @@
 Package: raboms
-Version: 0.8.1-3
+Version: 0.8.2
 Priority: optional
 Section: sound
 Maintainer: gaenseklein <raboms@gaenseklein.net>
 Installed-Size: 1250
 Architecture: all
-Depends: chromium | firefox | firefox-esr | chrome, zenity, mediainfo
+Depends: chromium | firefox | firefox-esr | chromium-browser, zenity, mediainfo
 Homepage: https://github.com/gaenseklein/raboms
 Description: Botonera de radio muy simple
  raboms es una botonera para radios, creado 

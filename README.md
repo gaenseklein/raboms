@@ -3,6 +3,8 @@ raboms - radio buttons made simple / radio botonera muy simple
 
 ![](src/images/logosmall.png)
 
+[english version](README-en.md)
+
 raboms es una botonera para radios, creado para la comunidad de radio-y-software-libre, hecho simple con html5 y javascript.
 
 El gól de ese programa es facilitar a radios comunitarias para hacer programa en vivo con una botonera a tener una opción facil y liviano.
@@ -10,9 +12,11 @@ Primero intentamos hasta donde podemos llegar asi no más con puro html y javasc
 
 En [liberaturadio.org](liberaturadio.org) hay un [primer tutorial](https://liberaturadio.org/raboms-nueva-botonera-para-la-radio/) a base de raboms 0.6
 
-Versión actual esta en 0.8
+Versión actual esta en 0.8.2
 
 # como instalar
+
+Hay diferentes modos como instalar raboms. Cada uno con sus ventajas y desventajas.
 
 ## linux -> git / con filemanager
 Abre un terminal y ponga
@@ -192,7 +196,8 @@ raboms esta escrito en javascript y html. Así es agnostico a tu sistema operati
 
 ## Cuales son los requisitos necesarios para usar raboms? Unas dependencias?
 
-raboms por su mismo debe funcionar en cualquier navegador que suporte javascript actual. Si quieres usar raboms con el script de filemanager necesitas tener un sistema que suporte todas las programas del script. Como son programas basicos de linux debe funcionar en cualquier distribución de linux. Si quieres incorporar las informaciones meta tienes que instalar *mediainfo*. Para las dudas, las programas que usa el script son:
+raboms por su mismo debe funcionar en cualquier navegador que suporte javascript actual. Recomendado sea instalarse chromium, como chromium soporta modo *app*.
+Si quieres usar raboms con el script de filemanager necesitas tener un sistema que suporte todas las programas del script. Como son programas basicos de linux debe funcionar en cualquier distribución de linux. Si quieres incorporar las informaciones meta tienes que instalar *mediainfo*. Para las dudas, las programas que usa el script son:
 1. find
 2. grep
 3. echo
@@ -203,9 +208,21 @@ raboms por su mismo debe funcionar en cualquier navegador que suporte javascript
 
 si instales de version deb se instale todas dependencias automatico.
 
+## Porque se recomenda usar chromium?
+
+chromium tiene un modo *app*. En ese modo raboms aparece como un programa común - con su propio icono en el taskbar y sin area de tabs y navegación. Asi tienes más espacio para raboms. Para instalar raboms en etertics abre un terminal de root y ponga `apt-get install chromium`. En Linux Mint se llama un poco diferente, ahi el paquete se instale en un terminal con `sudo apt-get install chromium-browser`
+
 ## Lo abrí el raboms, pero no pasa nada. Ni puedo cerrar la ventana de ayuda inicial
 
 Asegurate que javascript esta permitido en tu navegador. Si usas *NoScript* o un bloqueador de javascript similar hay que configurarlo que permite el javascript de raboms.
+
+## Todo aparece muy grande y los botones arriba usan mucho espacio
+
+Apreta *ctrl* y *-* hasta los botones estan en una linea.
+
+## Cuando se abre raboms siempre queda un terminal abierta y si lo ciero se cierra raboms tambien
+
+cambia la entrada del menu para que se abre como "application" y no como "application in terminal". 
 
 ## Me gusta el raboms, pero me falta una función
 
@@ -219,11 +236,10 @@ Si quieres desarrollar haga un fork de raboms, edita lo que quieres, subelo a gi
 ## Quiero ayudar al desarrollo para raboms, pero no puedo programar. Que puedo hacer?
 
 Puedes hacer unas cosas:
-1. Imágenes: Falta un icono lindo para raboms en el menú y tal.
-2. Documentación: La documentación es siempre un parte importante del desarrollo. Haga un tutorial para liberaturadio.org si quieres sobre como usar raboms, como instalar raboms etc. Muchas gracias a clara robayo de liberaturadio.org para el primer tutorial :)
-3. Corregir idioma: Ni castellano ni ingles son mis idiomas maternales. Asi seguramente hago errores. Si encuentras un error o si piensas que puedes escribirlo de una forma más sencillo - por favor mandame un mensaje y lo corrigo
-4. Probar y buscar errores: Nadien esta perfecto, ni raboms lo es. Si encuentras un error o algo te parece raro - escribame y voy a ver si lo puedo corregir.
-5. Dar ideas: Soy desarrollador y no radialista. Así si tienes una idea como mejorar raboms aunque no sabes como programarlo - tus ideas estan bienvenido. De verdad todo raboms llegó de un debate en el chat sobre que si existe un programa o una aplicación de este tipo para linux. Como no había (o por lo menos nadie lo conoce) llegó la idea de desarrollar raboms.
+1. Documentación: La documentación es siempre un parte importante del desarrollo. Haga un tutorial para liberaturadio.org si quieres sobre como usar raboms, como instalar raboms etc. Muchas gracias a clara robayo de liberaturadio.org para el primer tutorial :)
+2. Corregir idioma: Ni castellano ni ingles son mis idiomas maternales. Asi seguramente hago errores. Si encuentras un error o si piensas que puedes escribirlo de una forma más sencillo - por favor mandame un mensaje y lo corrigo
+3. Probar y buscar errores: Nadien esta perfecto, ni raboms lo es. Si encuentras un error o algo te parece raro - escribame y voy a ver si lo puedo corregir.
+4. Dar ideas: Soy desarrollador y no radialista. Así si tienes una idea como mejorar raboms aunque no sabes como programarlo - tus ideas estan bienvenido. De verdad todo raboms llegó de un debate en el chat sobre que si existe un programa o una aplicación de este tipo para linux. Como no había (o por lo menos nadie lo conoce) llegó la idea de desarrollar raboms.
 
 # Roadmap e ideas: que voy a incorporar en las proximas versiones
 
