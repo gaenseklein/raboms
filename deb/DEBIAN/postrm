@@ -1,5 +1,15 @@
 #!/bin/sh
+RABOMSDIR="/usr/share/raboms"
 
-# set -e
+set -e
 
-# rm -rf /usr/share/raboms/
+echo " -> Accion del script es $1 ..."
+
+[ "$1" = "remove" ] || [ "$1" = "purge" ] || exit 0
+
+echo "Limpiando residuos en "$RABOMSDIR
+
+if [ -d $RABOMSDIR ]; then 
+	rm -rf $RABOMSDIR
+fi 
+

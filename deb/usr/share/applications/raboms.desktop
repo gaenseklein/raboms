@@ -3,5 +3,5 @@ Type=Application
 Terminal=true
 Name=raboms
 Categories=AudioVideo;Player;
-Icon=/usr/share/icons/raboms/icon.png
+Icon=/usr/share/icons/raboms/icon.svg
 Exec=sh /usr/bin/raboms

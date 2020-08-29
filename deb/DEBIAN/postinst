@@ -1,17 +1,18 @@
 #!/bin/sh
+RABOMSDIR="/usr/share/raboms"
 
 set -e
 
 ## Cambio de propiedad sin usar recursividad para compatibilidad con lintian
 ## https://lintian.debian.org/tags/maintainer-script-should-not-use-recursive-chown-or-chmod.html
-chown root:audio /usr/share/raboms/
-chown root:audio /usr/share/raboms/*
-chown root:audio /usr/share/raboms/src/*
-chown root:audio /usr/share/raboms/src/images/*
+chown root:audio $RABOMSDIR/
+chown root:audio $RABOMSDIR/*
+chown root:audio $RABOMSDIR/src/*
+chown root:audio $RABOMSDIR/src/images/*
 ## Cambio de permisos sin usar recursividad para compatibilidad con lintian
 ## https://lintian.debian.org/tags/maintainer-script-should-not-use-recursive-chown-or-chmod.html
-chmod 775 /usr/share/raboms/
-chmod 775 /usr/share/raboms/*
-chmod 775 /usr/share/raboms/src/*
-chmod 775 /usr/share/raboms/src/images/*
+chmod 775 $RABOMSDIR/
+chmod 775 $RABOMSDIR/*
+chmod 775 $RABOMSDIR/src/*
+chmod 775 $RABOMSDIR/src/images/*
 
